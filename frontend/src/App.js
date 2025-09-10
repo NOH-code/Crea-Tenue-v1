@@ -1072,35 +1072,70 @@ L'équipe Blandin & Delloye`
               </CardHeader>
               <CardContent>
                 {generatedImage ? (
-                  <div className="space-y-4">
-                    <div className="relative rounded-xl overflow-hidden bg-slate-100">
-                      <img
-                        src={`${BACKEND_URL}${generatedImage.download_url}`}
-                        alt="Tenue générée"
-                        className="w-full h-auto"
-                      />
-                    </div>
-                    
-                    <div className="flex gap-3">
-                      <Button
-                        onClick={downloadImage}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Télécharger
-                      </Button>
+                    <div className="space-y-4">
+                      <div className={`relative overflow-hidden ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
+                        <img
+                          src={`${BACKEND_URL}${generatedImage.download_url}`}
+                          alt="Tenue générée"
+                          className="w-full h-auto"
+                        />
+                      </div>
                       
-                      {formData.email && (
-                        <Button variant="outline" className="flex-1">
-                          <Mail className="w-4 h-4 mr-2" />
-                          Envoyé par Email
-                        </Button>
+                      {/* Carrousel des images générées */}
+                      {generatedImages.length > 1 && (
+                        <div className="space-y-2">
+                          <h4 className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-slate-700'}`}>
+                            Autres variantes ({generatedImages.length})
+                          </h4>
+                          <div className="flex space-x-2 overflow-x-auto pb-2">
+                            {generatedImages.map((img, index) => (
+                              <div key={index} className="flex-shrink-0">
+                                <img
+                                  src={`${BACKEND_URL}${img.download_url}`}
+                                  alt={`Variante ${index + 1}`}
+                                  className={`w-16 h-16 object-cover cursor-pointer border-2 transition-colors ${
+                                    generatedImage.request_id === img.request_id 
+                                      ? 'border-blue-500' 
+                                      : isDarkMode ? 'border-slate-600' : 'border-slate-300'
+                                  }`}
+                                  onClick={() => setGeneratedImage(img)}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       )}
-                    </div>
-                    
-                    <div className="text-xs text-slate-500 text-center">
-                      Généré avec IA • Filigrane par TailorView
-                    </div>
+                      
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={downloadImage}
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Télécharger
+                        </Button>
+                        
+                        {generatedImages.length > 0 && formData.email && (
+                          <Button 
+                            onClick={sendMultipleImages}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            <Mail className="w-4 h-4 mr-2" />
+                            Envoyer {generatedImages.length} image{generatedImages.length > 1 ? 's' : ''}
+                          </Button>
+                        )}
+                        
+                        {formData.email && generatedImages.length === 1 && (
+                          <Button variant="outline" className="flex-1">
+                            <Mail className="w-4 h-4 mr-2" />
+                            Envoyé par Email
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div className={`text-xs text-center ${isDarkMode ? 'text-white' : 'text-slate-500'}`}>
+                        Généré avec IA • Filigrane par Blandin & Delloye
+                      </div>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-96 text-slate-400">
