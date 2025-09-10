@@ -547,12 +547,12 @@ function App() {
                   {/* Fabric Description */}
                   <div>
                     <Label className="text-sm font-medium text-slate-700 mb-2 block">Description du Tissu</Label>
-                    <Select value={formData.fabric_description.startsWith('PHOTO:') ? 'photo' : 'text'} 
+                    <Select value={formData.fabric_description === 'PHOTO' ? 'photo' : 'text'} 
                             onValueChange={(value) => {
                               if (value === 'text') {
                                 handleInputChange('fabric_description', '');
                               } else {
-                                handleInputChange('fabric_description', 'PHOTO:');
+                                handleInputChange('fabric_description', 'PHOTO');
                               }
                             }}>
                       <SelectTrigger className="w-full mb-2">
@@ -564,7 +564,7 @@ function App() {
                       </SelectContent>
                     </Select>
                     
-                    {formData.fabric_description.startsWith('PHOTO:') ? (
+                    {formData.fabric_description === 'PHOTO' ? (
                       <div className="relative">
                         <input
                           type="file"
@@ -604,15 +604,11 @@ function App() {
                         <SelectValue placeholder="Choisissez le type de chaussures" />
                       </SelectTrigger>  
                       <SelectContent>
-                        {options.shoe_types?.filter(type => type !== 'Custom').map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type === 'Black loafers' ? 'Mocassins noirs' :
-                             type === 'Brown loafers' ? 'Mocassins marron' :
-                             type === 'Black one-cut' ? 'Richelieu noires' :
-                             type === 'Brown one-cut' ? 'Richelieu marron' :
-                             type === 'White sneakers' ? 'Baskets blanches' : type}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="Black loafers">Mocassins noirs</SelectItem>
+                        <SelectItem value="Brown loafers">Mocassins marron</SelectItem>
+                        <SelectItem value="Black one-cut">Richelieu noires</SelectItem>
+                        <SelectItem value="Brown one-cut">Richelieu marron</SelectItem>
+                        <SelectItem value="White sneakers">Baskets blanches</SelectItem>
                         <SelectItem value="Description texte">Description texte</SelectItem>
                         <SelectItem value="Exemple photo">Exemple photo</SelectItem>
                       </SelectContent>
@@ -661,12 +657,8 @@ function App() {
                         <SelectValue placeholder="Choisissez le type d'accessoire" />
                       </SelectTrigger>
                       <SelectContent>
-                        {options.accessory_types?.filter(type => type !== 'Custom').map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type === 'Bow tie' ? 'Nœud papillon' :
-                             type === 'Tie' ? 'Cravate' : type}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="Bow tie">Nœud papillon</SelectItem>
+                        <SelectItem value="Tie">Cravate</SelectItem>
                         <SelectItem value="Description texte">Description texte</SelectItem>
                         <SelectItem value="Photo">Photo</SelectItem>
                       </SelectContent>
