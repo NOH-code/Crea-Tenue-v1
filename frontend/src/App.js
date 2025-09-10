@@ -341,7 +341,9 @@ L'équipe Blandin & Delloye`
   };
 
   const handleAdminAccess = () => {
+    console.log('Admin code entered:', adminCode); // Debug log
     if (adminCode === '1149') {
+      console.log('Admin code is correct, authenticating...'); // Debug log
       setIsAdminAuthenticated(true);
       setCurrentView('admin');
       setAdminCode('');
@@ -349,6 +351,7 @@ L'équipe Blandin & Delloye`
       fetchAdminData();
       toast.success("Accès administrateur accordé");
     } else {
+      console.log('Admin code is incorrect:', adminCode); // Debug log
       toast.error("Code administrateur incorrect");
       setAdminCode('');
     }
