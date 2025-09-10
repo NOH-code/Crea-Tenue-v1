@@ -213,6 +213,138 @@ function App() {
     return descriptions[key] || key;
   };
 
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const AdminView = () => (
+    <div className="space-y-6">
+      {/* Admin Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-slate-600">Total Demandes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{adminStats.total_requests || 0}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-slate-600">Aujourd'hui</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{adminStats.today_requests || 0}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-slate-600">Images Générées</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{adminStats.generated_images_count || 0}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-slate-600">Ambiance Populaire</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-sm font-medium">
+              {adminStats.atmosphere_stats?.[0]?._id || 'N/A'}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Requests Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            Toutes les Demandes
+          </CardTitle>
+          <CardDescription>Historique complet des demandes de tenues</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoadingAdmin ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="w-8 h-8 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Ambiance</TableHead>
+                    <TableHead>Costume</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Image</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {adminRequests.map((request) => (
+                    <TableRow key={request.id}>
+                      <TableCell className="text-sm">
+                        {formatDate(request.timestamp)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {getAtmosphereDescription(request.atmosphere)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {request.suit_type === '2-piece suit' ? '2 pièces' : '3 pièces'}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {request.email || 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(`${BACKEND_URL}/api/download/generated_${request.id}.png`, '_blank')}
+                          className="flex items-center gap-1"
+                        >
+                          <Eye className="w-3 h-3" />
+                          Voir
+                        </Button>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => deleteRequest(request.id)}
+                          className="flex items-center gap-1"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Supprimer
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {adminRequests.length === 0 && (
+                <div className="text-center py-8 text-slate-500">
+                  Aucune demande trouvée
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       <Toaster position="top-right" richColors />
