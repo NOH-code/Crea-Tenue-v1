@@ -430,44 +430,81 @@ function App() {
       <Toaster position="top-right" richColors />
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              {/* Your Logo - Main Branding */}
+            {/* Logo - More prominent, especially on mobile */}
+            <div className="flex items-center">
               <img 
                 src="https://customer-assets.emergentagent.com/job_tailorview/artifacts/sgrg1l59_logo%20noir%20sans%20fond.png" 
                 alt="Logo" 
-                className="w-20 h-20 object-contain"
+                className="w-16 h-16 md:w-24 md:h-24 lg:w-32 lg:h-32 object-contain"
               />
-              <div>
-                <p className="text-sm text-slate-500">Visualiseur de Tenue Marié</p>
-              </div>
             </div>
-            <div className="flex items-center space-x-4">
+            
+            {/* Navigation - Compact buttons */}
+            <div className="flex items-center space-x-2">
               <Button
                 variant={currentView === 'generator' ? 'default' : 'outline'}
+                size="sm"
                 onClick={() => setCurrentView('generator')}
-                className="flex items-center gap-2"
+                className="p-2 w-10 h-10"
               >
                 <Camera className="w-4 h-4" />
-                Générateur
               </Button>
+              
               <Button
-                variant={currentView === 'admin' ? 'default' : 'outline'}
-                onClick={() => setCurrentView('admin')}
-                className="flex items-center gap-2"
+                variant={currentView === 'admin' && isAdminAuthenticated ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  if (isAdminAuthenticated) {
+                    setCurrentView('admin');
+                    fetchAdminData();
+                  } else {
+                    setShowPasswordDialog(true);
+                  }
+                }}
+                className="p-2 w-10 h-10"
               >
                 <Settings className="w-4 h-4" />
-                Administration
               </Button>
-              <Badge variant="secondary" className="bg-slate-100 text-slate-700">
-                <Sparkles className="w-4 h-4 mr-1" />
-                IA-Alimenté
+              
+              <Badge variant="secondary" className="bg-slate-100 text-slate-700 hidden sm:flex">
+                <Sparkles className="w-3 h-3 mr-1" />
+                <span className="text-xs">IA</span>
               </Badge>
             </div>
           </div>
         </div>
       </header>
+
+      {/* Password Dialog */}
+      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Accès Administration</DialogTitle>
+            <DialogDescription>
+              Veuillez saisir le mot de passe administrateur
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              type="password"
+              placeholder="Mot de passe"
+              value={adminPassword}
+              onChange={(e) => setAdminPassword(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleAdminAccess()}
+            />
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowPasswordDialog(false)}>
+                Annuler
+              </Button>
+              <Button onClick={handleAdminAccess}>
+                Accéder
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <main className="container mx-auto px-6 py-8 max-w-7xl">
         {currentView === 'generator' ? (
