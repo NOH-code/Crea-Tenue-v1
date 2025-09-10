@@ -506,40 +506,6 @@ L'équipe Blandin & Delloye`
         </Card>
       </div>
 
-      {/* Password Change Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className={`flex items-center gap-2 ${isDarkMode ? 'text-slate-100' : ''}`}>
-            <Settings className="w-5 h-5" />
-            Paramètres Administration
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-4">
-            <Input
-              type="password"
-              placeholder="Nouveau mot de passe"
-              value={adminPassword}
-              onChange={(e) => setAdminPassword(e.target.value)}
-              className="max-w-xs"
-            />
-            <Button 
-              onClick={() => {
-                if (adminPassword.length >= 4) {
-                  handlePasswordChange(adminPassword);
-                  setAdminPassword('');
-                } else {
-                  toast.error("Le mot de passe doit contenir au moins 4 caractères");
-                }
-              }}
-              size="sm"
-            >
-              Changer le mot de passe
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Requests Table */}
       <Card>
         <CardHeader>
