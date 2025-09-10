@@ -297,13 +297,13 @@ L'équipe Blandin & Delloye`
       return;
     }
     
-    if (generatedImages.length === 0) {
-      toast.error("Aucune image à envoyer");
+    if (selectedImages.length === 0) {
+      toast.error("Veuillez sélectionner au moins une image à envoyer");
       return;
     }
     
     try {
-      const imageIds = generatedImages.map(img => img.request_id);
+      const imageIds = selectedImages;
       const response = await axios.post(`${API}/send-multiple`, {
         email: formData.email,
         imageIds: imageIds,
@@ -312,7 +312,9 @@ L'équipe Blandin & Delloye`
       });
       
       if (response.data.success) {
-        toast.success(`${generatedImages.length} images envoyées par email !`);
+        toast.success(`${selectedImages.length} image(s) envoyée(s) par email !`);
+        // Réinitialiser la sélection après envoi
+        setSelectedImages([]);
       }
     } catch (error) {
       toast.error("Échec de l'envoi multiple");
