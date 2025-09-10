@@ -1135,7 +1135,21 @@ L'équipe Blandin & Delloye`
             </div>
           </div>
         ) : (
-          <AdminView />
+          isAdminAuthenticated ? <AdminView /> : (
+            <div className="flex items-center justify-center h-64">
+              <Card className={`border-0 shadow-xl transition-colors duration-300 ${isDarkMode ? 'bg-slate-800/50 backdrop-blur-sm text-white' : 'bg-white/50 backdrop-blur-sm'}`}>
+                <CardContent className="p-8 text-center">
+                  <Settings className="w-12 h-12 mx-auto mb-4 text-slate-400" />
+                  <h3 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+                    Accès Administration Requis
+                  </h3>
+                  <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    Veuillez utiliser le bouton d'administration pour vous connecter.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          )
         )}
       </main>
     </div>
