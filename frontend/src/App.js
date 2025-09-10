@@ -535,11 +535,6 @@ function App() {
               >
                 <Settings className="w-4 h-4" />
               </Button>
-              
-              <Badge variant="secondary" className="bg-slate-100 text-slate-700 hidden sm:flex">
-                <Sparkles className="w-3 h-3 mr-1" />
-                <span className="text-xs">IA</span>
-              </Badge>
             </div>
           </div>
         </div>
