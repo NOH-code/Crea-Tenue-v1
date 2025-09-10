@@ -583,10 +583,203 @@ async def send_email_with_image(email: str, image_data: bytes, outfit_details: d
         logger.error(f"Error preparing email: {e}")
         return False
 
-# API Routes
-@api_router.get("/")
-async def root():
-    return {"message": "TailorView - Groom Outfit Generator API"}
+# API Routes - Authentication
+@api_router.post("/auth/register")
+async def register_user(user_data: UserCreate, background_tasks: BackgroundTasks):
+    """Register a new user"""
+    try:
+        # Validate password
+        if not validate_password(user_data.password):
+            raise HTTPException(
+                status_code=400, 
+                detail="Password must be at least 8 characters with at least 1 digit and 1 letter"
+            )
+        
+        # Check if user already exists
+        existing_user = await db.users.find_one({"email": user_data.email})
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
+        # Create verification token
+        verification_token = str(uuid.uuid4())
+        
+        # Hash password and create user
+        hashed_password = hash_password(user_data.password)
+        user = User(
+            **user_data.dict(exclude={"password"}),
+            verification_token=verification_token
+        )
+        
+        # Store user with hashed password
+        user_dict = user.dict()
+        user_dict["password"] = hashed_password
+        
+        await db.users.insert_one(user_dict)
+        
+        # Send verification email
+        background_tasks.add_task(
+            send_verification_email, 
+            user_data.email, 
+            user_data.prenom, 
+            verification_token
+        )
+        
+        return {
+            "success": True,
+            "message": "Account created! Please check your email to verify your account."
+        }
+        
+    except Exception as e:
+        logger.error(f"Registration error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/auth/verify/{token}")
+async def verify_email(token: str):
+    """Verify user email"""
+    try:
+        user = await db.users.find_one({"verification_token": token})
+        if not user:
+            raise HTTPException(status_code=400, detail="Invalid verification token")
+        
+        # Update user as verified
+        await db.users.update_one(
+            {"verification_token": token},
+            {"$set": {"is_verified": True, "verification_token": None}}
+        )
+        
+        return {"success": True, "message": "Email verified successfully!"}
+        
+    except Exception as e:
+        logger.error(f"Verification error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/auth/login")
+async def login_user(user_data: UserLogin):
+    """Login user"""
+    try:
+        # Find user
+        user = await db.users.find_one({"email": user_data.email})
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+        
+        # Verify password
+        if not verify_password(user_data.password, user["password"]):
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+        
+        # Check if email is verified
+        if not user.get("is_verified", False):
+            raise HTTPException(status_code=401, detail="Please verify your email first")
+        
+        # Update daily image counter if needed
+        today = datetime.now(timezone.utc).date().isoformat()
+        if user.get("last_image_date") != today:
+            await db.users.update_one(
+                {"email": user_data.email},
+                {"$set": {"images_used_today": 0, "last_image_date": today}}
+            )
+            user["images_used_today"] = 0
+        
+        # Create JWT token
+        token_data = {"email": user["email"], "role": user["role"]}
+        access_token = create_access_token(token_data)
+        
+        # Return user info and token
+        user_response = User(**user)
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": user_response.dict(exclude={"verification_token"})
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Login error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/auth/me")
+async def get_current_user_info(current_user: User = Depends(get_current_user)):
+    """Get current user information"""
+    return current_user.dict(exclude={"verification_token"})
+
+@api_router.post("/auth/create-user")
+async def create_user_by_admin(
+    user_data: UserCreate, 
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_user_or_admin)
+):
+    """Create user by admin or user (with invitation email)"""
+    try:
+        # Check if user already exists
+        existing_user = await db.users.find_one({"email": user_data.email})
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
+        # Generate temporary password and verification token
+        temp_password = str(uuid.uuid4())[:12]  # Temporary password
+        verification_token = str(uuid.uuid4())
+        
+        # Create user (not verified, will need to set password)
+        user = User(
+            **user_data.dict(exclude={"password"}),
+            verification_token=verification_token,
+            is_verified=False
+        )
+        
+        # Store user with temp password
+        user_dict = user.dict()
+        user_dict["password"] = hash_password(temp_password)
+        
+        await db.users.insert_one(user_dict)
+        
+        # Send invitation email
+        background_tasks.add_task(
+            send_invitation_email,
+            user_data.email,
+            user_data.prenom,
+            verification_token,
+            current_user.prenom + " " + current_user.nom
+        )
+        
+        return {
+            "success": True,
+            "message": f"User created! Invitation sent to {user_data.email}."
+        }
+        
+    except Exception as e:
+        logger.error(f"User creation error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# User Management Routes
+@api_router.get("/admin/users")
+async def get_all_users(current_user: User = Depends(get_admin_user)):
+    """Get all users (admin only)"""
+    users = await db.users.find({}, {"password": 0, "verification_token": 0}).to_list(1000)
+    return [User(**user).dict() for user in users]
+
+@api_router.put("/admin/users/{user_email}")
+async def update_user(
+    user_email: str, 
+    user_update: UserUpdate,
+    current_user: User = Depends(get_admin_user)
+):
+    """Update user (admin only)"""
+    try:
+        update_data = {k: v for k, v in user_update.dict().items() if v is not None}
+        
+        result = await db.users.update_one(
+            {"email": user_email},
+            {"$set": update_data}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return {"success": True, "message": "User updated successfully"}
+        
+    except Exception as e:
+        logger.error(f"User update error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/options")
 async def get_options():
