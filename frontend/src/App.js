@@ -366,6 +366,8 @@ L'équipe Blandin & Delloye`
       </DialogContent>
     </Dialog>
   );
+
+  const downloadCSV = () => {
     const headers = ['Date', 'Ambiance', 'Costume', 'Revers', 'Poches', 'Chaussures', 'Accessoire', 'Email', 'Tissu', 'Prompt'];
     const csvData = adminRequests.map(request => [
       formatDate(request.timestamp),
