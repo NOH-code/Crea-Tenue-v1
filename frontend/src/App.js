@@ -321,6 +321,25 @@ L'équipe Blandin & Delloye`
     }
   };
 
+  const toggleImageSelection = (imageId) => {
+    setSelectedImages(prev => {
+      if (prev.includes(imageId)) {
+        return prev.filter(id => id !== imageId);
+      } else {
+        return [...prev, imageId];
+      }
+    });
+  };
+
+  const selectAllImages = () => {
+    const allImageIds = generatedImages.map(img => img.request_id);
+    setSelectedImages(allImageIds);
+  };
+
+  const deselectAllImages = () => {
+    setSelectedImages([]);
+  };
+
   const handleAdminAccess = () => {
     if (adminCode === '1149') {
       setIsAdminAuthenticated(true);
