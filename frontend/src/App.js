@@ -260,7 +260,20 @@ L'équipe Blandin & Delloye`
       setProgress(100);
 
       if (response.data.success) {
-        setGeneratedImage(response.data);
+        const newImage = {
+          ...response.data,
+          modelImageData: modelPreview, // Garder la référence du modèle
+          timestamp: new Date().toISOString()
+        };
+        
+        setGeneratedImage(newImage);
+        
+        // Ajouter au carrousel (max 3 images)
+        setGeneratedImages(prev => {
+          const updated = [...prev, newImage];
+          return updated.slice(-3); // Garder seulement les 3 dernières
+        });
+        
         toast.success("Tenue générée avec succès !");
         
         if (response.data.email_sent) {
