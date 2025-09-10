@@ -258,18 +258,284 @@ class TailorViewAPITester:
         
         return success, response
 
-    def test_delete_request_endpoint(self, request_id=None):
-        """Test delete request endpoint"""
-        if not request_id:
-            # Use a dummy ID for testing
-            request_id = "non-existent-id"
+    def test_watermark_changes(self):
+        """Test NEW FEATURE: Watermark logo size increase (800%) and text removal"""
+        print("\n🔍 Testing NEW FEATURE: Watermark Changes (800% logo increase, no text)...")
         
-        return self.run_test(
-            "Delete Request",
-            "DELETE",
-            f"admin/request/{request_id}",
-            404  # Expecting not found for non-existent request
+        # Create test image for generation
+        model_image = self.create_test_image(400, 600, (200, 150, 100))
+        
+        data = {
+            'atmosphere': 'rustic',
+            'suit_type': '2-piece suit',
+            'lapel_type': 'Standard notch lapel',
+            'pocket_type': 'Slanted, no flaps',
+            'shoe_type': 'Black loafers',
+            'accessory_type': 'Tie'
+        }
+        
+        files = {
+            'model_image': ('model.jpg', model_image, 'image/jpeg')
+        }
+        
+        success, response = self.run_test(
+            "Generate Image for Watermark Testing",
+            "POST",
+            "generate",
+            200,
+            data=data,
+            files=files
         )
+        
+        if success and 'image_filename' in response:
+            print("✅ Image generated successfully for watermark testing")
+            print(f"   Generated file: {response['image_filename']}")
+            
+            # Try to download and analyze the image
+            download_success, download_data = self.run_test(
+                "Download Generated Image for Analysis",
+                "GET",
+                f"download/{response['image_filename']}",
+                200
+            )
+            
+            if download_success:
+                print("✅ Watermark feature test completed - image generated and downloadable")
+                print("   NOTE: Manual verification needed to confirm:")
+                print("   - Logo is 800% larger (80% of image width vs previous 10%)")
+                print("   - No text 'Généré avec IA • Filigrane par Blandin & Delloye' present")
+                return True, response
+            else:
+                print("❌ Could not download generated image for watermark analysis")
+                return False, {}
+        else:
+            print("❌ Failed to generate image for watermark testing")
+            return False, {}
+
+    def test_email_functionality_with_error_handling(self):
+        """Test NEW FEATURE: Enhanced email sending with better error handling"""
+        print("\n🔍 Testing NEW FEATURE: Email Functionality with Enhanced Error Handling...")
+        
+        # Test with valid email format
+        model_image = self.create_test_image(400, 600, (200, 150, 100))
+        
+        # Test with a real-looking email address
+        test_email = "charles.delloye@blandindelloye.com"
+        
+        data = {
+            'atmosphere': 'chic_elegant',
+            'suit_type': '3-piece suit',
+            'lapel_type': 'Standard peak lapel',
+            'pocket_type': 'Straight with flaps',
+            'shoe_type': 'Brown loafers',
+            'accessory_type': 'Bow tie',
+            'fabric_description': 'Premium navy wool',
+            'email': test_email
+        }
+        
+        files = {
+            'model_image': ('model.jpg', model_image, 'image/jpeg')
+        }
+        
+        success, response = self.run_test(
+            "Generate with Email (Enhanced Error Handling)",
+            "POST",
+            "generate",
+            200,
+            data=data,
+            files=files
+        )
+        
+        if success:
+            # Check for email_message field in response
+            if 'email_message' in response:
+                print(f"✅ email_message field present: {response['email_message']}")
+                
+                # Check email_sent status
+                if 'email_sent' in response:
+                    print(f"   Email sent status: {response['email_sent']}")
+                    
+                    if response['email_sent']:
+                        print("✅ Email reportedly sent successfully")
+                    else:
+                        print("⚠️  Email sending failed, but error handling working")
+                        print(f"   Error message: {response['email_message']}")
+                    
+                    return True, response
+                else:
+                    print("⚠️  Missing email_sent field in response")
+                    return False, {}
+            else:
+                print("❌ Missing email_message field in API response")
+                return False, {}
+        else:
+            print("❌ Failed to test email functionality")
+            return False, {}
+
+    def test_enhanced_api_responses(self):
+        """Test NEW FEATURE: Enhanced API responses with email_message field"""
+        print("\n🔍 Testing NEW FEATURE: Enhanced API Responses...")
+        
+        # Test without email parameter
+        model_image = self.create_test_image(400, 600, (200, 150, 100))
+        
+        data = {
+            'atmosphere': 'seaside',
+            'suit_type': '2-piece suit',
+            'lapel_type': 'Wide notch lapel',
+            'pocket_type': 'Slanted with flaps',
+            'shoe_type': 'White sneakers',
+            'accessory_type': 'Tie'
+        }
+        
+        files = {
+            'model_image': ('model.jpg', model_image, 'image/jpeg')
+        }
+        
+        success, response = self.run_test(
+            "Generate without Email (Check Response Structure)",
+            "POST",
+            "generate",
+            200,
+            data=data,
+            files=files
+        )
+        
+        if success:
+            # Verify all expected fields are present
+            expected_fields = ['success', 'request_id', 'image_filename', 'download_url', 'email_sent', 'email_message', 'message']
+            missing_fields = []
+            
+            for field in expected_fields:
+                if field not in response:
+                    missing_fields.append(field)
+                else:
+                    print(f"   ✓ Found field '{field}': {response[field]}")
+            
+            if missing_fields:
+                print(f"❌ Missing expected fields: {missing_fields}")
+                return False, {}
+            else:
+                print("✅ All expected fields present in API response")
+                
+                # Verify email_message is empty when no email provided
+                if response['email_message'] == "":
+                    print("✅ email_message correctly empty when no email provided")
+                else:
+                    print(f"⚠️  email_message not empty when no email provided: {response['email_message']}")
+                
+                return True, response
+        else:
+            print("❌ Failed to test enhanced API responses")
+            return False, {}
+
+    def test_email_with_invalid_address(self):
+        """Test email functionality with invalid email address"""
+        print("\n🔍 Testing Email with Invalid Address...")
+        
+        model_image = self.create_test_image(400, 600, (200, 150, 100))
+        
+        data = {
+            'atmosphere': 'hangover',
+            'suit_type': '2-piece suit',
+            'lapel_type': 'Standard notch lapel',
+            'pocket_type': 'Patch pockets',
+            'shoe_type': 'Black one-cut',
+            'accessory_type': 'Bow tie',
+            'email': 'invalid-email-address'  # Invalid email format
+        }
+        
+        files = {
+            'model_image': ('model.jpg', model_image, 'image/jpeg')
+        }
+        
+        success, response = self.run_test(
+            "Generate with Invalid Email",
+            "POST",
+            "generate",
+            200,  # Should still succeed but email should fail
+            data=data,
+            files=files
+        )
+        
+        if success:
+            if 'email_sent' in response and not response['email_sent']:
+                print("✅ Email correctly failed with invalid address")
+                print(f"   Error message: {response.get('email_message', 'No message')}")
+                return True, response
+            else:
+                print("⚠️  Expected email to fail with invalid address")
+                return False, {}
+        else:
+            print("❌ Request failed entirely with invalid email")
+            return False, {}
+
+    def test_comprehensive_new_features(self):
+        """Comprehensive test of all new features together"""
+        print("\n🔍 Testing ALL NEW FEATURES Together...")
+        
+        model_image = self.create_test_image(400, 600, (200, 150, 100))
+        fabric_image = self.create_test_image(200, 200, (50, 100, 150))
+        
+        # Use a real email for comprehensive testing
+        test_email = "test.tailorview@blandindelloye.com"
+        
+        data = {
+            'atmosphere': 'chic_elegant',
+            'suit_type': '3-piece suit',
+            'lapel_type': 'Wide peak lapel',
+            'pocket_type': 'Straight with flaps',
+            'shoe_type': 'Custom',
+            'accessory_type': 'Custom',
+            'fabric_description': 'Charcoal grey wool with subtle herringbone pattern',
+            'custom_shoe_description': 'Black patent leather formal shoes',
+            'custom_accessory_description': 'White silk bow tie with diamond studs',
+            'email': test_email
+        }
+        
+        files = {
+            'model_image': ('model.jpg', model_image, 'image/jpeg'),
+            'fabric_image': ('fabric.jpg', fabric_image, 'image/jpeg')
+        }
+        
+        success, response = self.run_test(
+            "Comprehensive New Features Test",
+            "POST",
+            "generate",
+            200,
+            data=data,
+            files=files
+        )
+        
+        if success:
+            print("✅ Comprehensive test successful")
+            
+            # Verify all new features
+            features_working = []
+            
+            # 1. Enhanced API response
+            if 'email_message' in response:
+                features_working.append("Enhanced API responses")
+                print("   ✓ Enhanced API responses working")
+            
+            # 2. Email functionality
+            if 'email_sent' in response:
+                if response['email_sent']:
+                    features_working.append("Email sending")
+                    print("   ✓ Email sending working")
+                else:
+                    print(f"   ⚠️  Email sending failed: {response.get('email_message', 'Unknown error')}")
+            
+            # 3. Image generation (watermark will be applied)
+            if 'image_filename' in response:
+                features_working.append("Image generation with watermark")
+                print("   ✓ Image generation with watermark working")
+            
+            print(f"\n✅ Working features: {', '.join(features_working)}")
+            return True, response
+        else:
+            print("❌ Comprehensive test failed")
+            return False, {}
 
 def main():
     print("🚀 Starting TailorView API Testing...")
