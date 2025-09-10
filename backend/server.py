@@ -427,7 +427,7 @@ async def generate_outfit(
         )
         
         # Generate image
-        generated_image = await generate_outfit_image(model_data, fabric_data, outfit_request)
+        generated_image = await generate_outfit_image(model_data, fabric_data, shoe_data, accessory_data, outfit_request)
         
         # Save to database
         outfit_record = OutfitRequest(**outfit_request.dict())
