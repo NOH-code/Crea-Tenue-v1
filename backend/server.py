@@ -445,10 +445,57 @@ async def download_image(filename: str):
         media_type='image/png'
     )
 
+@api_router.get("/admin/requests", response_model=List[OutfitRequest])
+async def get_all_requests():
+    """Get all outfit requests for admin view"""
+    requests = await db.outfit_requests.find().sort("timestamp", -1).to_list(1000)
+    return [OutfitRequest(**request) for request in requests]
+
+@api_router.get("/admin/stats")
+async def get_admin_stats():
+    """Get admin statistics"""
+    total_requests = await db.outfit_requests.count_documents({})
+    recent_requests = await db.outfit_requests.count_documents({
+        "timestamp": {"$gte": datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)}
+    })
+    
+    # Get requests by atmosphere
+    pipeline = [
+        {"$group": {"_id": "$atmosphere", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}}
+    ]
+    atmosphere_stats = await db.outfit_requests.aggregate(pipeline).to_list(10)
+    
+    return {
+        "total_requests": total_requests,
+        "today_requests": recent_requests,
+        "atmosphere_stats": atmosphere_stats,
+        "generated_images_count": len(list(Path("/app/generated_images").glob("*.png"))) if Path("/app/generated_images").exists() else 0
+    }
+
+@api_router.delete("/admin/request/{request_id}")
+async def delete_request(request_id: str):
+    """Delete a specific request and its associated image"""
+    try:
+        # Delete from database
+        result = await db.outfit_requests.delete_one({"id": request_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Request not found")
+        
+        # Delete associated image file
+        image_path = Path(f"/app/generated_images/generated_{request_id}.png")
+        if image_path.exists():
+            image_path.unlink()
+        
+        return {"success": True, "message": "Request deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/requests", response_model=List[OutfitRequest])
 async def get_requests():
     """Get all outfit requests"""
-    requests = await db.outfit_requests.find().to_list(1000)
+    requests = await db.outfit_requests.find().sort("timestamp", -1).to_list(1000)
     return [OutfitRequest(**request) for request in requests]
 
 # Include router in main app
