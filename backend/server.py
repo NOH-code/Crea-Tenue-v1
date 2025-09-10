@@ -148,6 +148,7 @@ class OutfitRequest(BaseModel):
     custom_shoe_description: Optional[str] = None
     custom_accessory_description: Optional[str] = None
     email: Optional[str] = None
+    user_email: Optional[str] = None  # Track which user created the request
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class OutfitRequestCreate(BaseModel):
