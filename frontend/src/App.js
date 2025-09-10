@@ -231,10 +231,28 @@ function App() {
                 <p className="text-sm text-slate-500">Visualiseur de Tenue Marié</p>
               </div>
             </div>
-            <Badge variant="secondary" className="bg-slate-100 text-slate-700">
-              <Sparkles className="w-4 h-4 mr-1" />
-              IA-Alimenté
-            </Badge>
+            <div className="flex items-center space-x-4">
+              <Button
+                variant={currentView === 'generator' ? 'default' : 'outline'}
+                onClick={() => setCurrentView('generator')}
+                className="flex items-center gap-2"
+              >
+                <Camera className="w-4 h-4" />
+                Générateur
+              </Button>
+              <Button
+                variant={currentView === 'admin' ? 'default' : 'outline'}
+                onClick={() => setCurrentView('admin')}
+                className="flex items-center gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                Administration
+              </Button>
+              <Badge variant="secondary" className="bg-slate-100 text-slate-700">
+                <Sparkles className="w-4 h-4 mr-1" />
+                IA-Alimenté
+              </Badge>
+            </div>
           </div>
         </div>
       </header>
