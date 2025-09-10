@@ -399,10 +399,18 @@ async def generate_outfit(
         
         if fabric_image and not fabric_image.content_type.startswith('image/'):
             raise HTTPException(status_code=400, detail="Fabric file must be an image")
+            
+        if shoe_image and not shoe_image.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="Shoe file must be an image")
+            
+        if accessory_image and not accessory_image.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="Accessory file must be an image")
         
         # Read image data
         model_data = await model_image.read()
         fabric_data = await fabric_image.read() if fabric_image else None
+        shoe_data = await shoe_image.read() if shoe_image else None
+        accessory_data = await accessory_image.read() if accessory_image else None
         
         # Create outfit request
         outfit_request = OutfitRequestCreate(
