@@ -254,7 +254,19 @@ Generate a stunning, photorealistic wedding image with perfect attention to ever
         if fabric_image_data:
             fabric_base64 = base64.b64encode(fabric_image_data).decode('utf-8')
             file_contents.append(ImageContent(fabric_base64))
-            prompt += "\n\nPlease use the fabric pattern/texture from the second uploaded image to design the suit."
+            prompt += "\n\nUtilisez le motif/texture du tissu de la deuxième image téléchargée pour concevoir le costume."
+        
+        # Add shoe image if provided  
+        if shoe_image_data:
+            shoe_base64 = base64.b64encode(shoe_image_data).decode('utf-8')
+            file_contents.append(ImageContent(shoe_base64))
+            prompt += f"\n\nUtilisez les chaussures montrées dans l'image téléchargée comme référence exacte pour les chaussures du marié."
+            
+        # Add accessory image if provided
+        if accessory_image_data:
+            accessory_base64 = base64.b64encode(accessory_image_data).decode('utf-8')
+            file_contents.append(ImageContent(accessory_base64))
+            prompt += f"\n\nUtilisez l'accessoire montré dans l'image téléchargée comme référence exacte pour l'accessoire du marié."
         
         # Create message
         msg = UserMessage(text=prompt, file_contents=file_contents)
