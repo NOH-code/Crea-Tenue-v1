@@ -637,7 +637,7 @@ function App() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {/* Atmosphere */}
                   <div>
-                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Ambiance Mariage *</Label>
+                    <Label className={`text-sm font-medium mb-2 block ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Ambiance Mariage *</Label>
                     <Select value={formData.atmosphere} onValueChange={(value) => handleInputChange('atmosphere', value)}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Choisissez l'ambiance du mariage" />
