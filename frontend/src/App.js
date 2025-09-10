@@ -21,11 +21,10 @@ const API = `${BACKEND_URL}/api`;
 
 function App() {
   const [currentView, setCurrentView] = useState('generator'); // 'generator' or 'admin'
-  const [adminTab, setAdminTab] = useState('dashboard'); // 'dashboard' or 'emailing'
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [adminPassword, setAdminPassword] = useState('');
-  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-  const [storedAdminPassword, setStoredAdminPassword] = useState('1149'); // Default password
+  const [adminTab, setAdminTab] = useState('dashboard'); // 'dashboard', 'emailing', or 'users'
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]); // Carrousel des images générées
   const [emailTemplate, setEmailTemplate] = useState({
