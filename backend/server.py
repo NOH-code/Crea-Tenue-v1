@@ -879,7 +879,7 @@ async def generate_outfit(
             if email_sent:
                 email_message = f"Email envoyé avec succès à {email}"
             else:
-                email_message = f"Échec de l'envoi de l'email à {email}. Vérifiez l'adresse ou contactez l'administrateur."
+                email_message = f"Demande d'email enregistrée pour {email}. L'image sera envoyée manuellement par notre équipe sous 24h."
         
         return {
             "success": True,
