@@ -20,11 +20,24 @@ const API = `${BACKEND_URL}/api`;
 
 function App() {
   const [currentView, setCurrentView] = useState('generator'); // 'generator' or 'admin'
+  const [adminTab, setAdminTab] = useState('dashboard'); // 'dashboard' or 'emailing'
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [storedAdminPassword, setStoredAdminPassword] = useState('1149'); // Default password
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [generatedImages, setGeneratedImages] = useState([]); // Carrousel des images générées
+  const [emailTemplate, setEmailTemplate] = useState({
+    subject: 'Votre Visualisation de Tenue de Marié Personnalisée',
+    body: `Cher Client,
+
+Merci d'avoir utilisé notre service de visualisation de tenue de marié !
+
+Veuillez trouver vos visualisations de tenue générées en pièce jointe.
+
+Cordialement,
+L'équipe Blandin & Delloye`
+  });
   const [options, setOptions] = useState({});
   const [formData, setFormData] = useState({
     atmosphere: 'rustic',
