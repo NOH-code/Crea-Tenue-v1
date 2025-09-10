@@ -506,11 +506,13 @@ async def send_invitation_email(email: str, prenom: str, verification_token: str
 async def send_email_with_image(email: str, image_data: bytes, outfit_details: dict):
     """Send generated image via email"""
     try:
-        # Email configuration - Add these to .env file for production
-        smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+        # Email configuration - Infomaniak SMTP settings
+        smtp_server = os.getenv('SMTP_SERVER', 'mail.infomaniak.com')
         smtp_port = int(os.getenv('SMTP_PORT', '587'))
         sender_email = os.getenv('SENDER_EMAIL')
         sender_password = os.getenv('SENDER_PASSWORD')
+        
+        logger.info(f"Attempting to send email to {email} using {smtp_server}:{smtp_port}")
         
         if not sender_email or not sender_password:
             logger.warning("Email credentials not configured in environment variables")
@@ -524,26 +526,23 @@ async def send_email_with_image(email: str, image_data: bytes, outfit_details: d
         msg['Subject'] = "Votre Visualisation de Tenue de Marié Personnalisée"
         
         # Email body in French
-        body = f"""
-        Cher Client,
+        body = f"""Cher Client,
 
-        Merci d'avoir utilisé notre service de visualisation de tenue de marié !
+Merci d'avoir utilisé notre service de visualisation de tenue de marié !
 
-        Détails de votre tenue personnalisée :
-        - Ambiance : {outfit_details.get('atmosphere', '')}
-        - Type de costume : {outfit_details.get('suit_type', '')}
-        - Revers : {outfit_details.get('lapel_type', '')}
-        - Poches : {outfit_details.get('pocket_type', '')}
-        - Chaussures : {outfit_details.get('shoe_type', '')}
-        - Accessoire : {outfit_details.get('accessory_type', '')}
-        
-        {f"- Description du tissu : {outfit_details.get('fabric_description', '')}" if outfit_details.get('fabric_description') else ""}
+Détails de votre tenue personnalisée :
+- Ambiance : {outfit_details.get('atmosphere', '')}
+- Type de costume : {outfit_details.get('suit_type', '')}
+- Revers : {outfit_details.get('lapel_type', '')}
+- Poches : {outfit_details.get('pocket_type', '')}
+- Chaussures : {outfit_details.get('shoe_type', '')}
+- Accessoire : {outfit_details.get('accessory_type', '')}
+{f"- Description du tissu : {outfit_details.get('fabric_description', '')}" if outfit_details.get('fabric_description') else ""}
 
-        Veuillez trouver votre visualisation de tenue générée en pièce jointe.
+Veuillez trouver votre visualisation de tenue générée en pièce jointe.
 
-        Cordialement,
-        L'équipe de Visualisation de Tenue de Marié
-        """
+Cordialement,
+L'équipe Blandin & Delloye"""
         
         msg.attach(MIMEText(body, 'plain', 'utf-8'))
         
@@ -557,24 +556,29 @@ async def send_email_with_image(email: str, image_data: bytes, outfit_details: d
         )
         msg.attach(part)
         
-        # Send email with better error handling
+        # Send email with better error handling and debugging
         try:
+            logger.info(f"Connecting to SMTP server {smtp_server}:{smtp_port}")
             with smtplib.SMTP(smtp_server, smtp_port) as server:
+                logger.info("Starting TLS...")
                 server.starttls()
+                logger.info(f"Logging in with user: {sender_email}")
                 server.login(sender_email, sender_password)
+                logger.info("Sending message...")
                 server.send_message(msg)
             
             logger.info(f"Email sent successfully to {email}")
             return True
             
-        except smtplib.SMTPAuthenticationError:
-            logger.error("SMTP Authentication failed - check email credentials")
+        except smtplib.SMTPAuthenticationError as auth_error:
+            logger.error(f"SMTP Authentication failed: {auth_error}")
+            logger.error(f"Check credentials for {sender_email} on {smtp_server}")
             return False
-        except smtplib.SMTPRecipientsRefused:
-            logger.error(f"Recipient email rejected: {email}")
+        except smtplib.SMTPRecipientsRefused as recipient_error:
+            logger.error(f"Recipient email rejected: {recipient_error}")
             return False
-        except smtplib.SMTPServerDisconnected:
-            logger.error("SMTP server disconnected")
+        except smtplib.SMTPServerDisconnected as disconnect_error:
+            logger.error(f"SMTP server disconnected: {disconnect_error}")
             return False
         except Exception as smtp_error:
             logger.error(f"SMTP error: {smtp_error}")
