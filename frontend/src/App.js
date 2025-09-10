@@ -585,13 +585,13 @@ function App() {
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Configuration Panel */}
             <div className="space-y-6">
-            <Card className="border-0 shadow-xl bg-white/50 backdrop-blur-sm">
+            <Card className={`border-0 shadow-xl transition-colors duration-300 ${isDarkMode ? 'bg-slate-800/50 backdrop-blur-sm' : 'bg-white/50 backdrop-blur-sm'}`}>
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-slate-800">
+                <CardTitle className={`flex items-center gap-2 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
                   <Camera className="w-5 h-5" />
                   Téléchargement de Photos
                 </CardTitle>
-                <CardDescription>Téléchargez votre photo de modèle et référence de tissu optionnelle</CardDescription>
+                <CardDescription className={isDarkMode ? 'text-slate-400' : ''}>Téléchargez votre photo de modèle et référence de tissu optionnelle</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Model Image Upload */}
