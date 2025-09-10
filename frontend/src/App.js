@@ -286,7 +286,7 @@ function App() {
 
   const getAtmosphereDescription = (key) => {
     const descriptions = {
-      rustic: "Rustique - Fleurs et bois avec arche florale",
+      rustic: "Champètre - Fleurs et bois avec arche florale",
       seaside: "Bord de mer - Cérémonie sur la plage avec océan", 
       chic_elegant: "Chic et élégant - Château comme Versailles",
       hangover: "Very Bad Trip - Style célébration Las Vegas"
