@@ -383,11 +383,11 @@ function App() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className={`flex items-center gap-2 ${isDarkMode ? 'text-slate-100' : ''}`}>
                 <Users className="w-5 h-5" />
                 Toutes les Demandes
               </CardTitle>
-              <CardDescription>Historique complet des demandes de tenues</CardDescription>
+              <CardDescription className={isDarkMode ? 'text-slate-400' : ''}>Historique complet des demandes de tenues</CardDescription>
             </div>
             <Button onClick={downloadCSV} className="flex items-center gap-2" size="sm">
               <FileDown className="w-4 h-4" />
