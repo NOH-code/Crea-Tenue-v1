@@ -544,6 +544,58 @@ function App() {
                     </Select>
                   </div>
 
+                  {/* Fabric Description */}
+                  <div>
+                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Description du Tissu</Label>
+                    <Select value={formData.fabric_description.startsWith('PHOTO:') ? 'photo' : 'text'} 
+                            onValueChange={(value) => {
+                              if (value === 'text') {
+                                handleInputChange('fabric_description', '');
+                              } else {
+                                handleInputChange('fabric_description', 'PHOTO:');
+                              }
+                            }}>
+                      <SelectTrigger className="w-full mb-2">
+                        <SelectValue placeholder="Choisissez le type de description" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="text">Description texte</SelectItem>
+                        <SelectItem value="photo">Exemple photo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    {formData.fabric_description.startsWith('PHOTO:') ? (
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange(e, 'fabric')}
+                          className="hidden"
+                          id="fabric-upload"
+                        />
+                        <label
+                          htmlFor="fabric-upload"
+                          className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 rounded-xl hover:border-slate-400 cursor-pointer transition-colors bg-slate-50/50 hover:bg-slate-100/50"
+                        >
+                          {fabricPreview ? (
+                            <img src={fabricPreview} alt="Aperçu tissu" className="w-full h-full object-cover rounded-xl" />
+                          ) : (
+                            <div className="text-center">
+                              <Palette className="w-6 h-6 text-slate-400 mx-auto mb-1" />
+                              <p className="text-xs text-slate-600">Photo du tissu</p>
+                            </div>
+                          )}
+                        </label>
+                      </div>
+                    ) : (
+                      <Textarea
+                        placeholder="Décrivez le tissu (ex: laine vert eucalyptus, rayures marine, etc.)"
+                        value={formData.fabric_description}
+                        onChange={(e) => handleInputChange('fabric_description', e.target.value)}
+                      />
+                    )}
+                  </div>
+
                   {/* Shoe Type */}
                   <div>
                     <Label className="text-sm font-medium text-slate-700 mb-2 block">Chaussures *</Label>
@@ -552,25 +604,52 @@ function App() {
                         <SelectValue placeholder="Choisissez le type de chaussures" />
                       </SelectTrigger>  
                       <SelectContent>
-                        {options.shoe_types?.map((type) => (
+                        {options.shoe_types?.filter(type => type !== 'Custom').map((type) => (
                           <SelectItem key={type} value={type}>
                             {type === 'Black loafers' ? 'Mocassins noirs' :
                              type === 'Brown loafers' ? 'Mocassins marron' :
                              type === 'Black one-cut' ? 'Richelieu noires' :
                              type === 'Brown one-cut' ? 'Richelieu marron' :
-                             type === 'White sneakers' ? 'Baskets blanches' :
-                             type === 'Custom' ? 'Personnalisé' : type}
+                             type === 'White sneakers' ? 'Baskets blanches' : type}
                           </SelectItem>
                         ))}
+                        <SelectItem value="Description texte">Description texte</SelectItem>
+                        <SelectItem value="Exemple photo">Exemple photo</SelectItem>
                       </SelectContent>
                     </Select>
-                    {formData.shoe_type === 'Custom' && (
+                    
+                    {formData.shoe_type === 'Description texte' && (
                       <Textarea
                         placeholder="Décrivez vos chaussures personnalisées..."
                         value={formData.custom_shoe_description}
                         onChange={(e) => handleInputChange('custom_shoe_description', e.target.value)}
                         className="mt-2"
                       />
+                    )}
+                    
+                    {formData.shoe_type === 'Exemple photo' && (
+                      <div className="relative mt-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange(e, 'shoe')}
+                          className="hidden"
+                          id="shoe-upload"
+                        />
+                        <label
+                          htmlFor="shoe-upload"
+                          className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 rounded-xl hover:border-slate-400 cursor-pointer transition-colors bg-slate-50/50 hover:bg-slate-100/50"
+                        >
+                          {shoePreview ? (
+                            <img src={shoePreview} alt="Aperçu chaussures" className="w-full h-full object-cover rounded-xl" />
+                          ) : (
+                            <div className="text-center">
+                              <Upload className="w-6 h-6 text-slate-400 mx-auto mb-1" />
+                              <p className="text-xs text-slate-600">Photo des chaussures</p>
+                            </div>
+                          )}
+                        </label>
+                      </div>
                     )}
                   </div>
 
@@ -582,16 +661,18 @@ function App() {
                         <SelectValue placeholder="Choisissez le type d'accessoire" />
                       </SelectTrigger>
                       <SelectContent>
-                        {options.accessory_types?.map((type) => (
+                        {options.accessory_types?.filter(type => type !== 'Custom').map((type) => (
                           <SelectItem key={type} value={type}>
                             {type === 'Bow tie' ? 'Nœud papillon' :
-                             type === 'Tie' ? 'Cravate' :
-                             type === 'Custom' ? 'Personnalisé' : type}
+                             type === 'Tie' ? 'Cravate' : type}
                           </SelectItem>
                         ))}
+                        <SelectItem value="Description texte">Description texte</SelectItem>
+                        <SelectItem value="Photo">Photo</SelectItem>
                       </SelectContent>
                     </Select>
-                    {formData.accessory_type === 'Custom' && (
+                    
+                    {formData.accessory_type === 'Description texte' && (
                       <Textarea
                         placeholder="Décrivez votre accessoire personnalisé..."
                         value={formData.custom_accessory_description}
@@ -599,16 +680,31 @@ function App() {
                         className="mt-2"
                       />
                     )}
-                  </div>
-
-                  {/* Fabric Description */}
-                  <div>
-                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Description du Tissu</Label>
-                    <Textarea
-                      placeholder="Décrivez le tissu (ex: laine vert eucalyptus, rayures marine, etc.)"
-                      value={formData.fabric_description}
-                      onChange={(e) => handleInputChange('fabric_description', e.target.value)}
-                    />
+                    
+                    {formData.accessory_type === 'Photo' && (
+                      <div className="relative mt-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange(e, 'accessory')}
+                          className="hidden"
+                          id="accessory-upload"
+                        />
+                        <label
+                          htmlFor="accessory-upload"
+                          className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 rounded-xl hover:border-slate-400 cursor-pointer transition-colors bg-slate-50/50 hover:bg-slate-100/50"
+                        >
+                          {accessoryPreview ? (
+                            <img src={accessoryPreview} alt="Aperçu accessoire" className="w-full h-full object-cover rounded-xl" />
+                          ) : (
+                            <div className="text-center">
+                              <Upload className="w-6 h-6 text-slate-400 mx-auto mb-1" />
+                              <p className="text-xs text-slate-600">Photo de l'accessoire</p>
+                            </div>
+                          )}
+                        </label>
+                      </div>
+                    )}
                   </div>
 
                   {/* Email */}
