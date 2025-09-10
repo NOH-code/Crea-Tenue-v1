@@ -204,15 +204,18 @@ frontend:
 
   - task: "Email confirmation popup with detailed messages"
     implemented: true
-    working: "unknown"
+    working: false
     file: "frontend/src/App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "unknown"
         agent: "main"
         comment: "Added enhanced email confirmation popup with success/error messages, duration control, and detailed descriptions for better user feedback."
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL ISSUE: Enhanced email confirmation popup code is present in App.js source file but NOT being served to browser. Code analysis shows email success/error messages, duration control, and description fields are missing from served JavaScript bundle. Frontend build/deployment issue preventing new code from being loaded. Tested multiple cache clears and restarts - code still not appearing in browser. Backend image generation also failing with Gemini model rejecting test images."
 
 metadata:
   created_by: "main_agent"
