@@ -24,6 +24,7 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [adminCode, setAdminCode] = useState('');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [adminDialogOpen, setAdminDialogOpen] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]); // Carrousel des images générées
   const [emailTemplate, setEmailTemplate] = useState({
     subject: 'Votre Visualisation de Tenue de Marié Personnalisée',
