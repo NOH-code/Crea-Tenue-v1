@@ -121,10 +121,12 @@ class TailorViewAPITester:
         )
 
     def test_generate_endpoint_full(self):
-        """Test generate endpoint with all optional parameters"""
+        """Test generate endpoint with all optional parameters including multi-image support"""
         # Create test images
         model_image = self.create_test_image(400, 600, (200, 150, 100))  # Model image
         fabric_image = self.create_test_image(200, 200, (50, 100, 150))  # Fabric image
+        shoe_image = self.create_test_image(300, 200, (139, 69, 19))     # Shoe image (brown)
+        accessory_image = self.create_test_image(150, 150, (255, 0, 0))  # Accessory image (red)
         
         # Prepare form data with all options
         data = {
@@ -142,11 +144,13 @@ class TailorViewAPITester:
         
         files = {
             'model_image': ('model.jpg', model_image, 'image/jpeg'),
-            'fabric_image': ('fabric.jpg', fabric_image, 'image/jpeg')
+            'fabric_image': ('fabric.jpg', fabric_image, 'image/jpeg'),
+            'shoe_image': ('shoe.jpg', shoe_image, 'image/jpeg'),
+            'accessory_image': ('accessory.jpg', accessory_image, 'image/jpeg')
         }
         
         return self.run_test(
-            "Generate Outfit (Full)",
+            "Generate Outfit (Full Multi-Image)",
             "POST",
             "generate", 
             200,
