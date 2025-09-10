@@ -452,35 +452,6 @@ function App() {
                     </label>
                   </div>
                 </div>
-
-                {/* Fabric Image Upload */}
-                <div>
-                  <Label className="text-sm font-medium text-slate-700 mb-3 block">
-                    Référence Tissu (Optionnel)
-                  </Label>
-                  <div className="relative">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileChange(e, 'fabric')}
-                      className="hidden"
-                      id="fabric-upload"
-                    />
-                    <label
-                      htmlFor="fabric-upload"
-                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-xl hover:border-slate-400 cursor-pointer transition-colors bg-slate-50/50 hover:bg-slate-100/50"
-                    >
-                      {fabricPreview ? (
-                        <img src={fabricPreview} alt="Aperçu tissu" className="w-full h-full object-cover rounded-xl" />
-                      ) : (
-                        <div className="text-center">
-                          <Palette className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                          <p className="text-sm text-slate-600">Cliquez pour télécharger la photo du tissu</p>
-                        </div>
-                      )}
-                    </label>
-                  </div>
-                </div>
               </CardContent>
             </Card>
 
