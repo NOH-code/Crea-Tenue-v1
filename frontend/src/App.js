@@ -70,8 +70,32 @@ L'équipe Blandin & Delloye`
 
   // Auth state management
   const [allUsers, setAllUsers] = useState([]);
-
-  useEffect(() => {
+  const [adminRequests, setAdminRequests] = useState([]);
+  const [adminStats, setAdminStats] = useState({});
+  const [isLoadingAdmin, setIsLoadingAdmin] = useState(false);
+  const [modelImage, setModelImage] = useState(null);
+  const [fabricImage, setFabricImage] = useState(null);
+  const [shoeImage, setShoeImage] = useState(null);
+  const [accessoryImage, setAccessoryImage] = useState(null);
+  const [modelPreview, setModelPreview] = useState(null);
+  const [fabricPreview, setFabricPreview] = useState(null);
+  const [shoePreview, setShoePreview] = useState(null);
+  const [accessoryPreview, setAccessoryPreview] = useState(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState(null);
+  const [progress, setProgress] = useState(0);
+  const [formData, setFormData] = useState({
+    atmosphere: 'rustic',
+    suit_type: '2-piece suit',
+    lapel_type: 'Standard notch lapel',
+    pocket_type: 'Slanted, no flaps',
+    shoe_type: 'Black loafers',
+    accessory_type: 'Tie',
+    fabric_description: '',
+    custom_shoe_description: '',
+    custom_accessory_description: '',
+    email: ''
+  });
     // Check for existing auth
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
