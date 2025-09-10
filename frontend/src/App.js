@@ -310,34 +310,34 @@ function App() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Total Demandes</CardTitle>
+            <CardTitle className={`text-sm font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Total Demandes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{adminStats.total_requests || 0}</div>
+            <div className={`text-2xl font-bold ${isDarkMode ? 'text-slate-100' : ''}`}>{adminStats.total_requests || 0}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Aujourd'hui</CardTitle>
+            <CardTitle className={`text-sm font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Aujourd'hui</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{adminStats.today_requests || 0}</div>
+            <div className={`text-2xl font-bold ${isDarkMode ? 'text-slate-100' : ''}`}>{adminStats.today_requests || 0}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Images Générées</CardTitle>
+            <CardTitle className={`text-sm font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Images Générées</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{adminStats.generated_images_count || 0}</div>
+            <div className={`text-2xl font-bold ${isDarkMode ? 'text-slate-100' : ''}`}>{adminStats.generated_images_count || 0}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Ambiance Populaire</CardTitle>
+            <CardTitle className={`text-sm font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Ambiance Populaire</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-sm font-medium">
+            <div className={`text-sm font-medium ${isDarkMode ? 'text-slate-100' : ''}`}>
               {adminStats.atmosphere_stats?.[0]?._id || 'N/A'}
             </div>
           </CardContent>
