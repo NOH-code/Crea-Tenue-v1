@@ -100,6 +100,60 @@ function App() {
     }
   };
 
+  const handleAdminAccess = () => {
+    if (adminPassword === storedAdminPassword) {
+      setIsAdminAuthenticated(true);
+      setCurrentView('admin');
+      setShowPasswordDialog(false);
+      setAdminPassword('');
+      fetchAdminData();
+    } else {
+      toast.error("Mot de passe incorrect");
+      setAdminPassword('');
+    }
+  };
+
+  const handlePasswordChange = async (newPassword) => {
+    setStoredAdminPassword(newPassword);
+    toast.success("Mot de passe mis à jour");
+  };
+
+  const downloadCSV = () => {
+    const headers = ['Date', 'Ambiance', 'Costume', 'Revers', 'Poches', 'Chaussures', 'Accessoire', 'Email', 'Tissu', 'Prompt'];
+    const csvData = adminRequests.map(request => [
+      formatDate(request.timestamp),
+      getAtmosphereDescription(request.atmosphere),
+      request.suit_type === '2-piece suit' ? '2 pièces' : '3 pièces',
+      request.lapel_type,
+      request.pocket_type,
+      request.shoe_type,
+      request.accessory_type,
+      request.email || 'N/A',
+      request.fabric_description || 'N/A',
+      `"${generatePromptPreview(request)}"`
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `demandes_tailorview_${new Date().getTime()}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("CSV téléchargé !");
+  };
+
+  const generatePromptPreview = (request) => {
+    return `Costume ${request.suit_type}, ambiance ${request.atmosphere}, revers ${request.lapel_type}, poches ${request.pocket_type}, chaussures ${request.shoe_type}, accessoire ${request.accessory_type}`;
+  };
+
   const handleFileChange = (event, type) => {
     const file = event.target.files[0];
     if (file) {
