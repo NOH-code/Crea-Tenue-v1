@@ -166,35 +166,84 @@ async def generate_outfit_image(
         # Convert model image to base64
         model_base64 = base64.b64encode(model_image_data).decode('utf-8')
         
-        # Build prompt
+        # Build detailed prompt with specific outfit specifications
         atmosphere_desc = ATMOSPHERE_OPTIONS.get(outfit_request.atmosphere, outfit_request.atmosphere)
         
-        prompt = f"""Create a professional, photorealistic photo of a future groom using the attached full-length model photo. 
+        # Detailed pocket specifications
+        pocket_details = {
+            "Slanted, no flaps": "slanted pockets without flaps, clean minimal lines",
+            "Slanted with flaps": "slanted pockets with fabric flaps covering the openings",
+            "Straight with flaps": "straight horizontal pockets with fabric flaps",
+            "Straight, no flaps": "straight horizontal pockets without flaps, welted style",
+            "Patch pockets": "patch pockets sewn on top of the jacket exterior"
+        }
+        
+        # Detailed lapel specifications  
+        lapel_details = {
+            "Standard notch lapel": "standard notch lapel with moderate width, classic business style",
+            "Wide notch lapel": "wide notch lapel with broader peak, more dramatic look",
+            "Standard peak lapel": "pointed peak lapel extending upward, formal style",
+            "Wide peak lapel": "wide pointed peak lapel, very formal and dramatic",
+            "Shawl collar with satin lapel": "rounded shawl collar with satin facing, tuxedo style",
+            "Standard double-breasted peak lapel": "peak lapel for double-breasted jacket, formal",
+            "Wide double-breasted peak lapel": "wide peak lapel for double-breasted jacket, very formal"
+        }
+        
+        # Suit composition details
+        suit_composition = ""
+        if "2-piece" in outfit_request.suit_type.lower():
+            suit_composition = "EXACTLY 2 pieces: jacket and trousers ONLY. NO vest, NO waistcoat, NO third piece visible."
+        elif "3-piece" in outfit_request.suit_type.lower():
+            suit_composition = "EXACTLY 3 pieces: jacket, trousers, AND waistcoat/vest. The vest MUST be visible under the jacket."
+        
+        pocket_spec = pocket_details.get(outfit_request.pocket_type, outfit_request.pocket_type)
+        lapel_spec = lapel_details.get(outfit_request.lapel_type, outfit_request.lapel_type)
+        
+        prompt = f"""Create a professional, photorealistic wedding photo of a groom using the attached full-length model photo.
 
-CRITICAL REQUIREMENTS - FOLLOW EXACTLY:
-- Suit Type: {outfit_request.suit_type} (IMPORTANT: If "2-piece suit" generate ONLY jacket and trousers, NO vest/waistcoat. If "3-piece suit" include vest/waistcoat)
-- Wedding Setting: {atmosphere_desc}
+CRITICAL SUIT SPECIFICATIONS - FOLLOW EXACTLY:
 
-GROOM'S EXACT OUTFIT SPECIFICATIONS:
-- Suit: {outfit_request.suit_type} - STRICTLY FOLLOW THIS SPECIFICATION
-- Fabric: {outfit_request.fabric_description or "premium wedding fabric"}  
-- Lapel Style: {outfit_request.lapel_type}
-- Jacket Pockets: {outfit_request.pocket_type}
-- Footwear: {outfit_request.custom_shoe_description or outfit_request.shoe_type}
-- Accessory: {outfit_request.custom_accessory_description or outfit_request.accessory_type}
+SUIT COMPOSITION: {suit_composition}
 
-STYLE AND QUALITY REQUIREMENTS:
-- Portrait format in 4:3 ratio
-- High-quality, professional wedding photography style
-- Natural lighting appropriate for the wedding setting
-- Show full body of the groom in the specified wedding environment
-- Ensure ALL outfit details are clearly visible and perfectly fitted
-- Maintain the model's natural pose and body proportions from the original photo
-- Professional wedding photography composition and lighting
+DETAILED JACKET SPECIFICATIONS:
+- Lapel Style: {lapel_spec}
+- Side Pockets: {pocket_spec}
+- Jacket Fit: Well-tailored, properly fitted to the model's body
+- Jacket Length: Appropriate proportion to the groom's height
 
-CRITICAL: Pay special attention to generating the EXACT suit type specified: {outfit_request.suit_type}. Do not add or remove pieces from the suit specification.
+FABRIC AND COLOR:
+- Material: {outfit_request.fabric_description or "premium wedding fabric"}
+- Texture: Show realistic fabric texture and drape
+- Color: Ensure consistent color throughout all pieces
 
-Generate a stunning, photorealistic wedding image that perfectly captures the elegance and style of this special moment."""
+FOOTWEAR SPECIFICATIONS:
+- Shoes: {outfit_request.custom_shoe_description or outfit_request.shoe_type}
+- Style: Professional, well-fitted, appropriate for formal wedding
+
+ACCESSORY SPECIFICATIONS:
+- Type: {outfit_request.custom_accessory_description or outfit_request.accessory_type}
+- Placement: Properly positioned and styled
+- Color coordination: Complement the suit color scheme
+
+WEDDING SETTING:
+- Environment: {atmosphere_desc}
+- Lighting: Natural, professional wedding photography lighting
+- Composition: Full-body shot showing all outfit details clearly
+
+TECHNICAL REQUIREMENTS:
+- Format: Portrait 4:3 ratio
+- Quality: High-resolution, professional wedding photography standard
+- Focus: Sharp details on all clothing elements
+- Pose: Maintain the model's original pose and proportions
+- Background: Appropriate wedding setting as specified
+
+CRITICAL ATTENTION TO DETAILS:
+- Ensure {outfit_request.pocket_type} are clearly visible and correctly styled
+- Verify {outfit_request.lapel_type} is accurately represented
+- Show proper fabric drape and tailoring
+- Maintain consistent lighting across all garment pieces
+
+Generate a stunning, photorealistic wedding image with perfect attention to every specified detail."""
         
         # Prepare file contents
         file_contents = [ImageContent(model_base64)]
