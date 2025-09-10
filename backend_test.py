@@ -531,6 +531,12 @@ class TailorViewAPITester:
                 features_working.append("Image generation with watermark")
                 print("   ✓ Image generation with watermark working")
             
+            print(f"\n✅ Working features: {', '.join(features_working)}")
+            return True, response
+        else:
+            print("❌ Comprehensive test failed")
+            return False, {}
+            
     def test_delete_request_endpoint(self, request_id=None):
         """Test delete request endpoint"""
         if not request_id:
