@@ -669,15 +669,11 @@ L'équipe Blandin & Delloye`
               </Button>
               
               <Button
-                variant={currentView === 'admin' && isAdminAuthenticated ? 'default' : 'outline'}
+                variant={currentView === 'admin' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
-                  if (isAdminAuthenticated) {
-                    setCurrentView('admin');
-                    fetchAdminData();
-                  } else {
-                    setShowPasswordDialog(true);
-                  }
+                  setCurrentView('admin');
+                  fetchAdminData();
                 }}
                 className="p-2 w-10 h-10"
                 title="Administration"
