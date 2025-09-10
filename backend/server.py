@@ -147,6 +147,8 @@ async def apply_watermark(image_data: bytes) -> bytes:
 async def generate_outfit_image(
     model_image_data: bytes,
     fabric_image_data: Optional[bytes],
+    shoe_image_data: Optional[bytes],
+    accessory_image_data: Optional[bytes],
     outfit_request: OutfitRequestCreate
 ) -> bytes:
     """Generate outfit image using Gemini with Nano Banana model"""
