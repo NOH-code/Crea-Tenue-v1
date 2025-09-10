@@ -24,6 +24,7 @@ function App() {
   const [adminPassword, setAdminPassword] = useState('');
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [storedAdminPassword, setStoredAdminPassword] = useState('1149'); // Default password
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [options, setOptions] = useState({});
   const [formData, setFormData] = useState({
     atmosphere: 'rustic',
