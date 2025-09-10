@@ -34,8 +34,12 @@ function App() {
   });
   const [modelImage, setModelImage] = useState(null);
   const [fabricImage, setFabricImage] = useState(null);
+  const [shoeImage, setShoeImage] = useState(null);
+  const [accessoryImage, setAccessoryImage] = useState(null);
   const [modelPreview, setModelPreview] = useState(null);
   const [fabricPreview, setFabricPreview] = useState(null);
+  const [shoePreview, setShoePreview] = useState(null);
+  const [accessoryPreview, setAccessoryPreview] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState(null);
   const [progress, setProgress] = useState(0);
