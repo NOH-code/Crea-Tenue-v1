@@ -625,13 +625,13 @@ function App() {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-xl bg-white/50 backdrop-blur-sm">
+            <Card className={`border-0 shadow-xl transition-colors duration-300 ${isDarkMode ? 'bg-slate-800/50 backdrop-blur-sm' : 'bg-white/50 backdrop-blur-sm'}`}>
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-slate-800">
+                <CardTitle className={`flex items-center gap-2 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
                   <Star className="w-5 h-5" />
                   Personnalisation de la Tenue
                 </CardTitle>
-                <CardDescription>Personnalisez chaque détail de la tenue du marié</CardDescription>
+                <CardDescription className={isDarkMode ? 'text-slate-400' : ''}>Personnalisez chaque détail de la tenue du marié</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <form onSubmit={handleSubmit} className="space-y-4">
