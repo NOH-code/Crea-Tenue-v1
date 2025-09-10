@@ -886,7 +886,7 @@ function App() {
                   <Button
                     type="submit"
                     disabled={isGenerating}
-                    className="w-full h-12 bg-gradient-to-r from-slate-800 to-slate-600 hover:from-slate-700 hover:to-slate-500 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                    className={`w-full h-12 font-medium shadow-lg hover:shadow-xl transition-all duration-200 ${isDarkMode ? 'bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white' : 'bg-gradient-to-r from-slate-800 to-slate-600 hover:from-slate-700 hover:to-slate-500 text-white'}`}
                   >
                     {isGenerating ? (
                       <div className="flex items-center gap-2">
