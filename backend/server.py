@@ -37,6 +37,103 @@ db = client[os.environ['DB_NAME']]
 # Create the main app
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
+security = HTTPBearer()
+
+# JWT Configuration
+JWT_SECRET = os.getenv('JWT_SECRET', 'your-secret-key-change-this')
+JWT_ALGORITHM = 'HS256'
+JWT_EXPIRATION_HOURS = 24
+
+# User Models
+class UserRole(str):
+    CLIENT = "client"
+    USER = "user" 
+    ADMIN = "admin"
+
+class UserCreate(BaseModel):
+    nom: str
+    prenom: str
+    titre: str  # "Monsieur" ou "Madame"
+    email: EmailStr
+    password: str
+    date_evenement: Optional[str] = None
+    accept_communications: bool
+    role: Optional[str] = UserRole.CLIENT
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class User(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    nom: str
+    prenom: str
+    titre: str
+    email: EmailStr
+    role: str = UserRole.CLIENT
+    date_evenement: Optional[str] = None
+    accept_communications: bool = False
+    is_verified: bool = False
+    images_used_today: int = 0
+    images_used_total: int = 0
+    images_limit_total: int = 10  # Limite pour les clients
+    last_image_date: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    verification_token: Optional[str] = None
+
+class UserUpdate(BaseModel):
+    role: Optional[str] = None
+    images_limit_total: Optional[int] = None
+    images_used_total: Optional[int] = None
+
+# Password utilities
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def verify_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+
+def validate_password(password: str) -> bool:
+    """Validate password: min 8 chars, at least 1 digit and 1 letter"""
+    if len(password) < 8:
+        return False
+    if not re.search(r'\d', password):
+        return False
+    if not re.search(r'[a-zA-Z]', password):
+        return False
+    return True
+
+# JWT utilities
+def create_access_token(data: dict) -> str:
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+    try:
+        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+async def get_current_user(payload: dict = Depends(verify_token)) -> User:
+    user_data = await db.users.find_one({"email": payload.get("email")})
+    if not user_data:
+        raise HTTPException(status_code=401, detail="User not found")
+    return User(**user_data)
+
+async def get_admin_user(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
+
+async def get_user_or_admin(current_user: User = Depends(get_current_user)) -> User:
+    if current_user.role not in [UserRole.USER, UserRole.ADMIN]:
+        raise HTTPException(status_code=403, detail="User or Admin access required")
+    return current_user
 
 # Define Models
 class OutfitRequest(BaseModel):
