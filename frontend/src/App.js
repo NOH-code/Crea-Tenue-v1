@@ -657,29 +657,47 @@ L'équipe Blandin & Delloye`
               >
                 {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </Button>
-              
-              <Button
-                variant={currentView === 'generator' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setCurrentView('generator')}
-                className="p-2 w-10 h-10"
-                title="Générateur"
-              >
-                <Camera className="w-4 h-4" />
-              </Button>
-              
-              <Button
-                variant={currentView === 'admin' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => {
-                  setCurrentView('admin');
-                  fetchAdminData();
-                }}
-                className="p-2 w-10 h-10"
-                title="Administration"
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
+
+              {isAuthenticated ? (
+                <>
+                  <Button
+                    variant={currentView === 'generator' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setCurrentView('generator')}
+                    className="p-2 w-10 h-10"
+                    title="Générateur"
+                  >
+                    <Camera className="w-4 h-4" />
+                  </Button>
+                  
+                  {(currentUser?.role === 'user' || currentUser?.role === 'admin') && (
+                    <Button
+                      variant={currentView === 'admin' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setCurrentView('admin');
+                        fetchAdminData();
+                      }}
+                      className="p-2 w-10 h-10"
+                      title="Administration"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAuthDialog(true)}
+                    className="p-2 w-10 h-10"
+                    title="Connexion"
+                  >
+                    <LogIn className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
