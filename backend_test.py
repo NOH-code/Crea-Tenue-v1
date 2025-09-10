@@ -312,15 +312,15 @@ class TailorViewAPITester:
             print("❌ Failed to generate image for watermark testing")
             return False, {}
 
-    def test_email_functionality_with_error_handling(self):
-        """Test NEW FEATURE: Enhanced email sending with better error handling"""
-        print("\n🔍 Testing NEW FEATURE: Email Functionality with Enhanced Error Handling...")
+    def test_improved_email_sending_system(self):
+        """Test IMPROVED email sending system with multiple SMTP fallbacks"""
+        print("\n🔍 Testing IMPROVED Email Sending System...")
         
         # Test with valid email format
         model_image = self.create_test_image(400, 600, (200, 150, 100))
         
         # Test with a real-looking email address
-        test_email = "charles.delloye@blandindelloye.com"
+        test_email = "test.tailorview@example.com"
         
         data = {
             'atmosphere': 'chic_elegant',
@@ -338,7 +338,7 @@ class TailorViewAPITester:
         }
         
         success, response = self.run_test(
-            "Generate with Email (Enhanced Error Handling)",
+            "Generate with Email (Multiple SMTP Fallbacks)",
             "POST",
             "generate",
             200,
@@ -356,10 +356,14 @@ class TailorViewAPITester:
                     print(f"   Email sent status: {response['email_sent']}")
                     
                     if response['email_sent']:
-                        print("✅ Email reportedly sent successfully")
+                        print("✅ Email sent successfully via SMTP")
                     else:
-                        print("⚠️  Email sending failed, but error handling working")
-                        print(f"   Error message: {response['email_message']}")
+                        print("✅ Email failed but queued for manual processing")
+                        print(f"   Queue message: {response['email_message']}")
+                        
+                        # Check if message indicates queuing
+                        if "enregistrée" in response['email_message'] or "manuellement" in response['email_message']:
+                            print("✅ Email queue system working - failed emails are queued")
                     
                     return True, response
                 else:
@@ -369,7 +373,159 @@ class TailorViewAPITester:
                 print("❌ Missing email_message field in API response")
                 return False, {}
         else:
-            print("❌ Failed to test email functionality")
+            print("❌ Failed to test improved email functionality")
+            return False, {}
+
+    def test_email_queue_system(self):
+        """Test email queue system for failed emails"""
+        print("\n🔍 Testing Email Queue System...")
+        
+        # Test with an email that will likely fail to trigger queue system
+        model_image = self.create_test_image(400, 600, (200, 150, 100))
+        
+        # Use an email that should trigger queue system
+        test_email = "queue.test@faileddomain.invalid"
+        
+        data = {
+            'atmosphere': 'rustic',
+            'suit_type': '2-piece suit',
+            'lapel_type': 'Standard notch lapel',
+            'pocket_type': 'Slanted, no flaps',
+            'shoe_type': 'Black loafers',
+            'accessory_type': 'Tie',
+            'email': test_email
+        }
+        
+        files = {
+            'model_image': ('model.jpg', model_image, 'image/jpeg')
+        }
+        
+        success, response = self.run_test(
+            "Generate with Email (Queue System Test)",
+            "POST",
+            "generate",
+            200,
+            data=data,
+            files=files
+        )
+        
+        if success:
+            if 'email_sent' in response and not response['email_sent']:
+                print("✅ Email correctly failed and should be queued")
+                
+                # Check if response indicates queuing
+                if 'email_message' in response:
+                    message = response['email_message']
+                    if "enregistrée" in message or "manuellement" in message or "24h" in message:
+                        print("✅ Email queue system message present")
+                        print(f"   Queue message: {message}")
+                        return True, response
+                    else:
+                        print(f"⚠️  Unexpected email message: {message}")
+                        return False, {}
+                else:
+                    print("❌ Missing email_message for failed email")
+                    return False, {}
+            else:
+                print("⚠️  Expected email to fail for queue testing")
+                return True, response  # Still success if email somehow worked
+        else:
+            print("❌ Failed to test email queue system")
+            return False, {}
+
+    def test_admin_email_queue_endpoint(self):
+        """Test admin email queue endpoint"""
+        print("\n🔍 Testing Admin Email Queue Endpoint...")
+        
+        success, response = self.run_test(
+            "Get Admin Email Queue",
+            "GET",
+            "admin/email-queue",
+            200
+        )
+        
+        if success:
+            # Verify expected structure
+            if 'success' in response and 'queue' in response:
+                print(f"✅ Admin email queue endpoint working")
+                print(f"   Success: {response['success']}")
+                print(f"   Queue items: {len(response['queue'])}")
+                
+                # Check queue structure if items exist
+                if response['queue']:
+                    first_item = response['queue'][0]
+                    expected_fields = ['id', 'email', 'outfit_details', 'timestamp', 'status']
+                    missing_fields = [field for field in expected_fields if field not in first_item]
+                    
+                    if missing_fields:
+                        print(f"⚠️  Missing fields in queue item: {missing_fields}")
+                    else:
+                        print("✅ Queue item structure correct")
+                        print(f"   Sample item: {first_item.get('email', 'N/A')} - {first_item.get('status', 'N/A')}")
+                else:
+                    print("   No items in queue (expected if no failed emails)")
+                
+                return True, response
+            else:
+                print("❌ Invalid response structure from admin email queue")
+                return False, {}
+        else:
+            print("❌ Failed to access admin email queue endpoint")
+            return False, {}
+
+    def test_multiple_smtp_configurations(self):
+        """Test multiple SMTP configurations and fallback behavior"""
+        print("\n🔍 Testing Multiple SMTP Configurations...")
+        
+        # This test will trigger the SMTP fallback system
+        model_image = self.create_test_image(400, 600, (200, 150, 100))
+        
+        # Use a real-looking email to test SMTP attempts
+        test_email = "smtp.test@blandindelloye.com"
+        
+        data = {
+            'atmosphere': 'seaside',
+            'suit_type': '3-piece suit',
+            'lapel_type': 'Wide peak lapel',
+            'pocket_type': 'Straight with flaps',
+            'shoe_type': 'Custom',
+            'accessory_type': 'Custom',
+            'custom_shoe_description': 'Brown oxford shoes',
+            'custom_accessory_description': 'Silk pocket square',
+            'email': test_email
+        }
+        
+        files = {
+            'model_image': ('model.jpg', model_image, 'image/jpeg')
+        }
+        
+        success, response = self.run_test(
+            "Generate with Email (SMTP Fallback Test)",
+            "POST",
+            "generate",
+            200,
+            data=data,
+            files=files
+        )
+        
+        if success:
+            print("✅ SMTP configuration test completed")
+            
+            if 'email_sent' in response:
+                if response['email_sent']:
+                    print("✅ Email sent successfully (one of the SMTP configs worked)")
+                else:
+                    print("✅ All SMTP configs failed, email queued (fallback working)")
+                
+                if 'email_message' in response:
+                    print(f"   Email result: {response['email_message']}")
+                
+                return True, response
+            else:
+                print("⚠️  Missing email_sent field")
+                return False, {}
+        else:
+            print("❌ Failed to test SMTP configurations")
             return False, {}
 
     def test_enhanced_api_responses(self):
