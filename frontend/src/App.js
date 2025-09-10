@@ -306,7 +306,66 @@ L'équipe Blandin & Delloye`
     }
   };
 
-  const downloadCSV = () => {
+  const handleAdminAccess = () => {
+    if (adminCode === '1149') {
+      setIsAdminAuthenticated(true);
+      setCurrentView('admin');
+      setAdminCode('');
+      fetchAdminData();
+      toast.success("Accès administrateur accordé");
+    } else {
+      toast.error("Code administrateur incorrect");
+      setAdminCode('');
+    }
+  };
+
+  const AdminCodeDialog = () => (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="p-2 w-10 h-10"
+          title="Administration"
+        >
+          <Settings className="w-4 h-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className={`sm:max-w-[425px] ${isDarkMode ? 'bg-slate-800 text-white' : ''}`}>
+        <DialogHeader>
+          <DialogTitle className={isDarkMode ? 'text-white' : ''}>Accès Administration</DialogTitle>
+          <DialogDescription className={isDarkMode ? 'text-slate-400' : ''}>
+            Entrez le code administrateur pour accéder au panneau d'administration.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="admin-code" className="text-right">
+              Code
+            </Label>
+            <Input
+              id="admin-code"
+              type="password"
+              value={adminCode}
+              onChange={(e) => setAdminCode(e.target.value)}
+              placeholder="Entrez le code"
+              className={`col-span-3 ${isDarkMode ? 'bg-slate-700 text-white border-slate-600' : ''}`}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleAdminAccess();
+                }
+              }}
+            />
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <Button onClick={handleAdminAccess} className={isDarkMode ? 'bg-slate-600 hover:bg-slate-500' : ''}>
+            Accéder
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
     const headers = ['Date', 'Ambiance', 'Costume', 'Revers', 'Poches', 'Chaussures', 'Accessoire', 'Email', 'Tissu', 'Prompt'];
     const csvData = adminRequests.map(request => [
       formatDate(request.timestamp),
