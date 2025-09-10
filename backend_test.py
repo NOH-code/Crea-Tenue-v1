@@ -283,7 +283,7 @@ def main():
     print("\n📋 Testing Generate Endpoint...")
     tester.test_generate_endpoint_minimal()
     
-    print("\n📋 Testing Generate Endpoint (Full Parameters)...")
+    print("\n📋 Testing Generate Endpoint (Full Multi-Image Parameters)...")
     generate_success, generate_data = tester.test_generate_endpoint_full()
     
     print("\n📋 Testing Validation...")
@@ -295,6 +295,11 @@ def main():
     
     print("\n📋 Testing Requests Endpoint...")
     tester.test_requests_endpoint()
+    
+    print("\n📋 Testing Admin Endpoints...")
+    tester.test_admin_requests_endpoint()
+    admin_stats_success, admin_stats_data = tester.test_admin_stats_endpoint()
+    tester.test_delete_request_endpoint()
     
     # Test download with actual filename if generation was successful
     if generate_success and 'image_filename' in generate_data:
