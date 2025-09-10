@@ -278,43 +278,46 @@ Generate a stunning, photorealistic wedding image with perfect attention to ever
 async def send_email_with_image(email: str, image_data: bytes, outfit_details: dict):
     """Send generated image via email"""
     try:
-        # Email configuration (use environment variables in production)
-        smtp_server = "smtp.gmail.com"
-        smtp_port = 587
-        sender_email = os.getenv('SENDER_EMAIL', 'noreply@tailorview.com')
+        # Email configuration - Add these to .env file for production
+        smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+        smtp_port = int(os.getenv('SMTP_PORT', '587'))
+        sender_email = os.getenv('SENDER_EMAIL')
         sender_password = os.getenv('SENDER_PASSWORD')
         
-        if not sender_password:
-            logger.warning("Email credentials not configured")
+        if not sender_email or not sender_password:
+            logger.warning("Email credentials not configured in environment variables")
+            logger.info("To enable email delivery, add SENDER_EMAIL and SENDER_PASSWORD to .env file")
             return False
         
         # Create message
         msg = MIMEMultipart()
         msg['From'] = sender_email
         msg['To'] = email
-        msg['Subject'] = "Your Custom Groom Outfit Visualization"
+        msg['Subject'] = "Votre Visualisation de Tenue de Marié Personnalisée"
         
-        # Email body
+        # Email body in French
         body = f"""
-        Dear Customer,
+        Cher Client,
 
-        Thank you for using our groom outfit visualization service!
+        Merci d'avoir utilisé notre service de visualisation de tenue de marié !
 
-        Your custom outfit details:
-        - Atmosphere: {outfit_details.get('atmosphere', '')}
-        - Suit Type: {outfit_details.get('suit_type', '')}
-        - Lapel: {outfit_details.get('lapel_type', '')}
-        - Pockets: {outfit_details.get('pocket_type', '')}
-        - Shoes: {outfit_details.get('shoe_type', '')}
-        - Accessory: {outfit_details.get('accessory_type', '')}
+        Détails de votre tenue personnalisée :
+        - Ambiance : {outfit_details.get('atmosphere', '')}
+        - Type de costume : {outfit_details.get('suit_type', '')}
+        - Revers : {outfit_details.get('lapel_type', '')}
+        - Poches : {outfit_details.get('pocket_type', '')}
+        - Chaussures : {outfit_details.get('shoe_type', '')}
+        - Accessoire : {outfit_details.get('accessory_type', '')}
+        
+        {f"- Description du tissu : {outfit_details.get('fabric_description', '')}" if outfit_details.get('fabric_description') else ""}
 
-        Please find your generated outfit visualization attached.
+        Veuillez trouver votre visualisation de tenue générée en pièce jointe.
 
-        Best regards,
-        TailorView Team
+        Cordialement,
+        L'équipe de Visualisation de Tenue de Marié
         """
         
-        msg.attach(MIMEText(body, 'plain'))
+        msg.attach(MIMEText(body, 'plain', 'utf-8'))
         
         # Attach image
         part = MIMEBase('application', 'octet-stream')
@@ -322,20 +325,35 @@ async def send_email_with_image(email: str, image_data: bytes, outfit_details: d
         encoders.encode_base64(part)
         part.add_header(
             'Content-Disposition',
-            f'attachment; filename=groom_outfit_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png'
+            f'attachment; filename=tenue_marie_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png'
         )
         msg.attach(part)
         
-        # Send email
-        with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.starttls()
-            server.login(sender_email, sender_password)
-            server.send_message(msg)
-        
-        return True
+        # Send email with better error handling
+        try:
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.send_message(msg)
+            
+            logger.info(f"Email sent successfully to {email}")
+            return True
+            
+        except smtplib.SMTPAuthenticationError:
+            logger.error("SMTP Authentication failed - check email credentials")
+            return False
+        except smtplib.SMTPRecipientsRefused:
+            logger.error(f"Recipient email rejected: {email}")
+            return False
+        except smtplib.SMTPServerDisconnected:
+            logger.error("SMTP server disconnected")
+            return False
+        except Exception as smtp_error:
+            logger.error(f"SMTP error: {smtp_error}")
+            return False
         
     except Exception as e:
-        logger.error(f"Error sending email: {e}")
+        logger.error(f"Error preparing email: {e}")
         return False
 
 # API Routes
