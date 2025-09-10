@@ -99,12 +99,23 @@ function App() {
   const handleFileChange = (event, type) => {
     const file = event.target.files[0];
     if (file) {
-      if (type === 'model') {
-        setModelImage(file);
-        setModelPreview(URL.createObjectURL(file));
-      } else {
-        setFabricImage(file);
-        setFabricPreview(URL.createObjectURL(file));
+      switch(type) {
+        case 'model':
+          setModelImage(file);
+          setModelPreview(URL.createObjectURL(file));
+          break;
+        case 'fabric':
+          setFabricImage(file);
+          setFabricPreview(URL.createObjectURL(file));
+          break;
+        case 'shoe':
+          setShoeImage(file);
+          setShoePreview(URL.createObjectURL(file));
+          break;
+        case 'accessory':
+          setAccessoryImage(file);
+          setAccessoryPreview(URL.createObjectURL(file));
+          break;
       }
     }
   };
