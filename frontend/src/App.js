@@ -153,24 +153,6 @@ L'équipe Blandin & Delloye`
     }
   };
 
-  const handleAdminAccess = () => {
-    if (adminPassword === storedAdminPassword) {
-      setIsAdminAuthenticated(true);
-      setCurrentView('admin');
-      setShowPasswordDialog(false);
-      setAdminPassword('');
-      fetchAdminData();
-    } else {
-      toast.error("Mot de passe incorrect");
-      setAdminPassword('');
-    }
-  };
-
-  const handlePasswordChange = async (newPassword) => {
-    setStoredAdminPassword(newPassword);
-    toast.success("Mot de passe mis à jour");
-  };
-
   const downloadCSV = () => {
     const headers = ['Date', 'Ambiance', 'Costume', 'Revers', 'Poches', 'Chaussures', 'Accessoire', 'Email', 'Tissu', 'Prompt'];
     const csvData = adminRequests.map(request => [
