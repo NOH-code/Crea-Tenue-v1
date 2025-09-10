@@ -164,6 +164,12 @@ function App() {
       if (fabricImage) {
         data.append('fabric_image', fabricImage);
       }
+      if (shoeImage) {
+        data.append('shoe_image', shoeImage);
+      }
+      if (accessoryImage) {
+        data.append('accessory_image', accessoryImage);
+      }
       
       Object.keys(formData).forEach(key => {
         if (formData[key]) {
