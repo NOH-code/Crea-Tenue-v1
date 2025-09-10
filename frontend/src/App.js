@@ -368,6 +368,8 @@ L'équipe Blandin & Delloye`
   );
 
   const downloadCSV = () => {
+    const headers = ['Date', 'Ambiance', 'Costume', 'Revers', 'Poches', 'Chaussures', 'Accessoire', 'Email', 'Tissu', 'Prompt'];
+    const csvData = adminRequests.map(request => [
       formatDate(request.timestamp),
       getAtmosphereDescription(request.atmosphere),
       request.suit_type === '2-piece suit' ? '2 pièces' : '3 pièces',
