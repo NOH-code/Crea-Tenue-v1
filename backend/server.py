@@ -473,6 +473,93 @@ async def generate_outfit(
         logger.error(f"Error in generate_outfit: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.post("/send-multiple")
+async def send_multiple_images(request: dict):
+    """Send multiple generated images via email"""
+    try:
+        email = request.get('email')
+        image_ids = request.get('imageIds', [])
+        subject = request.get('subject', 'Vos Visualisations de Tenue de Marié')
+        body = request.get('body', 'Veuillez trouver vos visualisations en pièce jointe.')
+        
+        if not email or not image_ids:
+            raise HTTPException(status_code=400, detail="Email et IDs d'images requis")
+        
+        # Collect all image data
+        image_data_list = []
+        for image_id in image_ids:
+            image_path = Path(f"/app/generated_images/generated_{image_id}.png")
+            if image_path.exists():
+                with open(image_path, 'rb') as f:
+                    image_data_list.append({
+                        'data': f.read(),
+                        'filename': f"tenue_variante_{len(image_data_list) + 1}.png"
+                    })
+        
+        if not image_data_list:
+            raise HTTPException(status_code=404, detail="Aucune image trouvée")
+        
+        # Send email with multiple attachments
+        success = await send_multiple_email_with_images(email, image_data_list, subject, body)
+        
+        return {
+            "success": success,
+            "message": f"{len(image_data_list)} images envoyées" if success else "Échec de l'envoi"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error sending multiple images: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+async def send_multiple_email_with_images(email: str, image_data_list: list, subject: str, body: str):
+    """Send email with multiple image attachments"""
+    try:
+        smtp_server = os.getenv('SMTP_SERVER', 'mail.infomaniak.com')
+        smtp_port = int(os.getenv('SMTP_PORT', '587'))
+        sender_email = os.getenv('SENDER_EMAIL')
+        sender_password = os.getenv('SENDER_PASSWORD')
+        
+        if not sender_email or not sender_password:
+            logger.warning("Email credentials not configured")
+            return False
+        
+        # Create message
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = email
+        msg['Subject'] = subject
+        
+        msg.attach(MIMEText(body, 'plain', 'utf-8'))
+        
+        # Attach multiple images
+        for i, image_data in enumerate(image_data_list):
+            part = MIMEBase('application', 'octet-stream')
+            part.set_payload(image_data['data'])
+            encoders.encode_base64(part)
+            part.add_header(
+                'Content-Disposition',
+                f'attachment; filename={image_data["filename"]}'
+            )
+            msg.attach(part)
+        
+        # Send email
+        try:
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.send_message(msg)
+            
+            logger.info(f"Multiple images email sent successfully to {email}")
+            return True
+            
+        except Exception as smtp_error:
+            logger.error(f"SMTP error: {smtp_error}")
+            return False
+        
+    except Exception as e:
+        logger.error(f"Error preparing multiple email: {e}")
+        return False
+
 @api_router.get("/download/{filename}")
 async def download_image(filename: str):
     """Download generated image"""
