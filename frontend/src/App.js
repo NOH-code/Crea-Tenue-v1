@@ -19,12 +19,12 @@ const API = `${BACKEND_URL}/api`;
 function App() {
   const [options, setOptions] = useState({});
   const [formData, setFormData] = useState({
-    atmosphere: '',
-    suit_type: '',
-    lapel_type: '',
-    pocket_type: '',
-    shoe_type: '',
-    accessory_type: '',
+    atmosphere: 'rustic',
+    suit_type: '2-piece suit',
+    lapel_type: 'Standard notch lapel',
+    pocket_type: 'Slanted, no flaps',
+    shoe_type: 'Black loafers',
+    accessory_type: 'Tie',
     fabric_description: '',
     custom_shoe_description: '',
     custom_accessory_description: '',
