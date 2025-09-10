@@ -483,33 +483,43 @@ function App() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+    <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'dark bg-slate-900' : 'bg-gradient-to-br from-slate-50 via-white to-slate-100'}`}>
       <Toaster position="top-right" richColors />
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
+      <header className={`backdrop-blur-md border-b sticky top-0 z-50 transition-colors duration-300 ${isDarkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-white/80 border-slate-200'}`}>
         {/* Mobile Logo Banner */}
-        <div className="md:hidden mobile-logo-banner">
+        <div className={`md:hidden mobile-logo-banner transition-colors duration-300 ${isDarkMode ? 'bg-gradient-to-r from-slate-800 to-slate-700' : ''}`}>
           <img 
             src="https://customer-assets.emergentagent.com/job_tailorview/artifacts/sgrg1l59_logo%20noir%20sans%20fond.png" 
             alt="Logo" 
-            className="h-16 object-contain"
+            className="h-32 object-contain"
           />
         </div>
         
         {/* Main Header */}
         <div className="container mx-auto px-4 py-3 mobile-header">
           <div className="flex items-center justify-between">
-            {/* Desktop Logo */}
+            {/* Desktop Logo - 100% plus grand */}
             <div className="hidden md:flex items-center">
               <img 
                 src="https://customer-assets.emergentagent.com/job_tailorview/artifacts/sgrg1l59_logo%20noir%20sans%20fond.png" 
                 alt="Logo" 
-                className="w-24 h-24 lg:w-32 lg:h-32 object-contain"
+                className="w-48 h-48 lg:w-64 lg:h-64 object-contain"
               />
             </div>
             
             {/* Navigation - Compact buttons */}
             <div className="flex items-center space-x-2 mobile-nav-buttons">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="p-2 w-10 h-10"
+                title={isDarkMode ? "Mode clair" : "Mode sombre"}
+              >
+                {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </Button>
+              
               <Button
                 variant={currentView === 'generator' ? 'default' : 'outline'}
                 size="sm"
