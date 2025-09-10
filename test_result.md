@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: User wants to restore admin code 1149 access and fix image generation that is not working anymore. Focus on making the app functional again using Emergent LLM key.
+user_problem_statement: User wants to restore admin code 1149 access and fix image generation that is not working anymore. Additional requirements: Remove "Généré avec IA • Filigrane par Blandin & Delloye" text, multiply logo by 800%, fix email sending, and add email confirmation popup.
 
 backend:
   - task: "Remove authentication requirement from image generation"
@@ -159,6 +159,30 @@ backend:
         agent: "testing"
         comment: "Admin endpoints working perfectly: GET /api/admin/requests returns all outfit requests, GET /api/admin/stats returns comprehensive statistics (total: 15 requests, today: 15, atmosphere breakdown, generated images count: 15)."
 
+  - task: "Watermark logo size increase and text removal"
+    implemented: true
+    working: "unknown"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "Modified apply_watermark function to increase logo size from 10% to 80% of image width (800% increase) and removed any text generation."
+
+  - task: "Email sending functionality with better error handling"
+    implemented: true
+    working: "unknown"  
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "Enhanced send_email_with_image function with better Infomaniak SMTP configuration, detailed logging, and improved error handling. Added email_message in API response."
+
 frontend:
   - task: "Admin code 1149 access dialog"
     implemented: true
@@ -172,15 +196,29 @@ frontend:
         agent: "main"
         comment: "AdminCodeDialog appears correctly but authentication logic may have issues. Dialog shows but may not properly authenticate"
 
+  - task: "Email confirmation popup with detailed messages"
+    implemented: true
+    working: "unknown"
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "unknown"
+        agent: "main"
+        comment: "Added enhanced email confirmation popup with success/error messages, duration control, and detailed descriptions for better user feedback."
+
 metadata:
   created_by: "main_agent"
-  version: "1.0"
-  test_sequence: 1
+  version: "1.1"
+  test_sequence: 2
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Frontend admin code 1149 access dialog"
+    - "Watermark logo size increase and text removal"
+    - "Email sending functionality with better error handling"
+    - "Email confirmation popup with detailed messages"
   stuck_tasks:
     - "Admin code 1149 access dialog"
   test_all: false
@@ -191,3 +229,5 @@ agent_communication:
     message: "Restored admin code 1149 functionality and removed auth requirements from image generation. Ready for testing to verify functionality."
   - agent: "testing"
     message: "BACKEND TESTING COMPLETE: All priority backend endpoints working perfectly! ✅ /api/generate (image generation without auth), ✅ /api/options (customization options), ✅ /api/admin/requests & /api/admin/stats (admin functionality). Emergent LLM integration confirmed working with successful image generation. Core backend functionality fully operational."
+  - agent: "main"
+    message: "UPDATED: Modified watermark to remove text and increase logo size by 800%. Enhanced email functionality with better error handling and detailed popup confirmations. Ready for testing these new features."
