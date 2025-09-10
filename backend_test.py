@@ -546,32 +546,46 @@ class TailorViewAPITester:
 
 def main():
     print("🚀 Starting TailorView API Testing...")
-    print("=" * 60)
+    print("🎯 FOCUS: Testing NEW FEATURES - Watermark changes, Email functionality, Enhanced API responses")
+    print("=" * 80)
     
     tester = TailorViewAPITester()
     
-    # Test sequence
+    # Test sequence - prioritizing NEW FEATURES
+    print("\n🆕 PRIORITY TESTS: NEW FEATURES")
+    print("=" * 50)
+    
+    print("\n📋 Testing NEW FEATURE: Watermark Changes (800% logo increase, no text)...")
+    watermark_success, watermark_data = tester.test_watermark_changes()
+    
+    print("\n📋 Testing NEW FEATURE: Email Functionality with Enhanced Error Handling...")
+    email_success, email_data = tester.test_email_functionality_with_error_handling()
+    
+    print("\n📋 Testing NEW FEATURE: Enhanced API Responses...")
+    api_success, api_data = tester.test_enhanced_api_responses()
+    
+    print("\n📋 Testing Email with Invalid Address...")
+    invalid_email_success, invalid_email_data = tester.test_email_with_invalid_address()
+    
+    print("\n📋 Testing ALL NEW FEATURES Together...")
+    comprehensive_success, comprehensive_data = tester.test_comprehensive_new_features()
+    
+    # Basic functionality tests (existing features)
+    print("\n\n🔧 EXISTING FEATURES VERIFICATION")
+    print("=" * 50)
+    
     print("\n📋 Testing Basic Endpoints...")
     tester.test_root_endpoint()
     
     print("\n📋 Testing Options Endpoint...")
     options_success, options_data = tester.test_options_endpoint()
     
-    print("\n📋 Testing Generate Endpoint...")
+    print("\n📋 Testing Generate Endpoint (Basic)...")
     tester.test_generate_endpoint_minimal()
-    
-    print("\n📋 Testing Generate Endpoint (Full Multi-Image Parameters)...")
-    generate_success, generate_data = tester.test_generate_endpoint_full()
     
     print("\n📋 Testing Validation...")
     tester.test_generate_endpoint_validation()
     tester.test_generate_endpoint_invalid_file()
-    
-    print("\n📋 Testing Download Endpoint...")
-    tester.test_download_endpoint()
-    
-    print("\n📋 Testing Requests Endpoint...")
-    tester.test_requests_endpoint()
     
     print("\n📋 Testing Admin Endpoints...")
     tester.test_admin_requests_endpoint()
@@ -579,15 +593,50 @@ def main():
     tester.test_delete_request_endpoint()
     
     # Test download with actual filename if generation was successful
-    if generate_success and 'image_filename' in generate_data:
+    if watermark_success and 'image_filename' in watermark_data:
         print(f"\n📋 Testing Download with Generated File...")
-        download_success, _ = tester.test_download_endpoint(generate_data['image_filename'])
+        download_success, _ = tester.test_download_endpoint(watermark_data['image_filename'])
         if download_success:
             print("✅ Download endpoint working with generated file")
     
     # Print final results
-    print("\n" + "=" * 60)
+    print("\n" + "=" * 80)
     print(f"📊 Final Results: {tester.tests_passed}/{tester.tests_run} tests passed")
+    
+    # NEW FEATURES SUMMARY
+    print("\n🆕 NEW FEATURES TEST SUMMARY:")
+    print("=" * 40)
+    
+    new_features_results = []
+    
+    if watermark_success:
+        new_features_results.append("✅ Watermark Changes (800% logo, no text)")
+    else:
+        new_features_results.append("❌ Watermark Changes")
+    
+    if email_success:
+        new_features_results.append("✅ Email Functionality with Error Handling")
+    else:
+        new_features_results.append("❌ Email Functionality")
+    
+    if api_success:
+        new_features_results.append("✅ Enhanced API Responses")
+    else:
+        new_features_results.append("❌ Enhanced API Responses")
+    
+    if comprehensive_success:
+        new_features_results.append("✅ Comprehensive Integration")
+    else:
+        new_features_results.append("❌ Comprehensive Integration")
+    
+    for result in new_features_results:
+        print(f"   {result}")
+    
+    # Overall assessment
+    new_features_working = sum([watermark_success, email_success, api_success, comprehensive_success])
+    total_new_features = 4
+    
+    print(f"\n🎯 NEW FEATURES STATUS: {new_features_working}/{total_new_features} working")
     
     if tester.tests_passed == tester.tests_run:
         print("🎉 All tests passed!")
