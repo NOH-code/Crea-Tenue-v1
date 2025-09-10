@@ -573,6 +573,11 @@ L'équipe Blandin & Delloye"""
         except smtplib.SMTPAuthenticationError as auth_error:
             logger.error(f"SMTP Authentication failed: {auth_error}")
             logger.error(f"Check credentials for {sender_email} on {smtp_server}")
+            
+            # TEMPORARY: Log email request for manual processing
+            logger.info(f"MANUAL EMAIL REQUEST: {email} - Image generated at {datetime.now()}")
+            
+            # Return False but with a user-friendly message logged
             return False
         except smtplib.SMTPRecipientsRefused as recipient_error:
             logger.error(f"Recipient email rejected: {recipient_error}")
