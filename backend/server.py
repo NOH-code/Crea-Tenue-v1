@@ -390,6 +390,118 @@ Generate a stunning, photorealistic wedding image with perfect attention to ever
         logger.error(f"Error generating outfit image: {e}")
         raise HTTPException(status_code=500, detail=f"Image generation failed: {str(e)}")
 
+async def send_verification_email(email: str, prenom: str, verification_token: str):
+    """Send email verification email"""
+    try:
+        smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+        smtp_port = int(os.getenv('SMTP_PORT', '587'))
+        sender_email = os.getenv('SENDER_EMAIL')
+        sender_password = os.getenv('SENDER_PASSWORD')
+        
+        if not sender_email or not sender_password:
+            logger.warning("Email credentials not configured")
+            return False
+        
+        # Create message
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = email
+        msg['Subject'] = "Vérifiez votre compte TailorView"
+        
+        # Verification URL - adjust domain as needed
+        verification_url = f"{os.getenv('FRONTEND_URL', 'http://localhost:3000')}/verify/{verification_token}"
+        
+        body = f"""
+        Bonjour {prenom},
+
+        Merci de vous être inscrit sur TailorView !
+
+        Pour activer votre compte, veuillez cliquer sur le lien suivant :
+        {verification_url}
+
+        Ce lien expirera dans 24 heures.
+
+        Si vous n'avez pas créé de compte, ignorez cet email.
+
+        Cordialement,
+        L'équipe TailorView
+        """
+        
+        msg.attach(MIMEText(body, 'plain', 'utf-8'))
+        
+        # Send email
+        try:
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.send_message(msg)
+            
+            logger.info(f"Verification email sent to {email}")
+            return True
+            
+        except Exception as smtp_error:
+            logger.error(f"SMTP error: {smtp_error}")
+            return False
+        
+    except Exception as e:
+        logger.error(f"Error sending verification email: {e}")
+        return False
+
+async def send_invitation_email(email: str, prenom: str, verification_token: str, inviter_name: str):
+    """Send invitation email for user created by admin"""
+    try:
+        smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+        smtp_port = int(os.getenv('SMTP_PORT', '587'))
+        sender_email = os.getenv('SENDER_EMAIL')
+        sender_password = os.getenv('SENDER_PASSWORD')
+        
+        if not sender_email or not sender_password:
+            logger.warning("Email credentials not configured")
+            return False
+        
+        # Create message
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = email
+        msg['Subject'] = "Invitation à rejoindre TailorView"
+        
+        # Setup URL - adjust domain as needed
+        setup_url = f"{os.getenv('FRONTEND_URL', 'http://localhost:3000')}/setup-password/{verification_token}"
+        
+        body = f"""
+        Bonjour {prenom},
+
+        {inviter_name} vous a invité à rejoindre TailorView !
+
+        Pour configurer votre compte et définir votre mot de passe, veuillez cliquer sur le lien suivant :
+        {setup_url}
+
+        Ce lien expirera dans 24 heures.
+
+        Cordialement,
+        L'équipe TailorView
+        """
+        
+        msg.attach(MIMEText(body, 'plain', 'utf-8'))
+        
+        # Send email
+        try:
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.send_message(msg)
+            
+            logger.info(f"Invitation email sent to {email}")
+            return True
+            
+        except Exception as smtp_error:
+            logger.error(f"SMTP error: {smtp_error}")
+            return False
+        
+    except Exception as e:
+        logger.error(f"Error sending invitation email: {e}")
+        return False
+
 async def send_email_with_image(email: str, image_data: bytes, outfit_details: dict):
     """Send generated image via email"""
     try:
