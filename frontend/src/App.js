@@ -18,6 +18,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 function App() {
+  const [currentView, setCurrentView] = useState('generator'); // 'generator' or 'admin'
   const [options, setOptions] = useState({});
   const [formData, setFormData] = useState({
     atmosphere: 'rustic',
@@ -38,6 +39,11 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState(null);
   const [progress, setProgress] = useState(0);
+  
+  // Admin state
+  const [adminRequests, setAdminRequests] = useState([]);
+  const [adminStats, setAdminStats] = useState({});
+  const [isLoadingAdmin, setIsLoadingAdmin] = useState(false);
 
   useEffect(() => {
     fetchOptions();
