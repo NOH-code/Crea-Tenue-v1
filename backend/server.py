@@ -377,6 +377,8 @@ async def get_options():
 async def generate_outfit(
     model_image: UploadFile = File(...),
     fabric_image: Optional[UploadFile] = File(None),
+    shoe_image: Optional[UploadFile] = File(None),
+    accessory_image: Optional[UploadFile] = File(None),
     atmosphere: str = Form(...),
     suit_type: str = Form(...),
     lapel_type: str = Form(...),
