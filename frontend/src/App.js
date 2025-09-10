@@ -165,6 +165,10 @@ L'équipe Blandin & Delloye`
     toast.success("CSV téléchargé !");
   };
 
+  const generatePromptPreview = (request) => {
+    return `Costume ${request.suit_type}, ambiance ${request.atmosphere}, revers ${request.lapel_type}, poches ${request.pocket_type}, chaussures ${request.shoe_type}, accessoire ${request.accessory_type}`;
+  };
+
   const sendMultipleImages = async () => {
     if (!formData.email) {
       toast.error("Veuillez saisir un email");
