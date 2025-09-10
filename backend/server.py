@@ -1071,6 +1071,12 @@ async def get_email_queue():
     """Get pending email queue for admin view"""
     try:
         queue_items = await db.email_queue.find({"status": "pending"}).sort("timestamp", -1).to_list(100)
+        
+        # Convert ObjectId to string for JSON serialization
+        for item in queue_items:
+            if '_id' in item:
+                item['_id'] = str(item['_id'])
+        
         return {"success": True, "queue": queue_items}
     except Exception as e:
         logger.error(f"Error fetching email queue: {e}")
