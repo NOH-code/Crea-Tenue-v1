@@ -685,35 +685,6 @@ L'équipe Blandin & Delloye`
         </div>
       </header>
 
-      {/* Password Dialog */}
-      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Accès Administration</DialogTitle>
-            <DialogDescription>
-              Veuillez saisir le mot de passe administrateur
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              type="password"
-              placeholder="Mot de passe"
-              value={adminPassword}
-              onChange={(e) => setAdminPassword(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleAdminAccess()}
-            />
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setShowPasswordDialog(false)}>
-                Annuler
-              </Button>
-              <Button onClick={handleAdminAccess}>
-                Accéder
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <main className="container mx-auto px-6 py-8 max-w-7xl">
         {currentView === 'generator' ? (
           <div className="grid lg:grid-cols-2 gap-8">
