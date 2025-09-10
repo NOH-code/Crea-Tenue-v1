@@ -165,9 +165,101 @@ L'équipe Blandin & Delloye`
     toast.success("CSV téléchargé !");
   };
 
-  const generatePromptPreview = (request) => {
-    return `Costume ${request.suit_type}, ambiance ${request.atmosphere}, revers ${request.lapel_type}, poches ${request.pocket_type}, chaussures ${request.shoe_type}, accessoire ${request.accessory_type}`;
+  const sendMultipleImages = async () => {
+    if (!formData.email) {
+      toast.error("Veuillez saisir un email");
+      return;
+    }
+    
+    if (generatedImages.length === 0) {
+      toast.error("Aucune image à envoyer");
+      return;
+    }
+    
+    try {
+      const imageIds = generatedImages.map(img => img.request_id);
+      const response = await axios.post(`${API}/send-multiple`, {
+        email: formData.email,
+        imageIds: imageIds,
+        subject: emailTemplate.subject,
+        body: emailTemplate.body
+      });
+      
+      if (response.data.success) {
+        toast.success(`${generatedImages.length} images envoyées par email !`);
+      }
+    } catch (error) {
+      toast.error("Échec de l'envoi multiple");
+    }
   };
+
+  const EmailingTab = () => (
+    <div className="space-y-6">
+      <Card className={`border-0 shadow-xl transition-colors duration-300 ${isDarkMode ? 'bg-slate-800/50 backdrop-blur-sm' : 'bg-white/50 backdrop-blur-sm'}`}>
+        <CardHeader>
+          <CardTitle className={isDarkMode ? 'text-white' : 'text-slate-800'}>
+            📧 Gestion des Templates Email
+          </CardTitle>
+          <CardDescription className={isDarkMode ? 'text-white' : ''}>
+            Personnalisez les emails envoyés aux clients
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label className={isDarkMode ? 'text-white' : 'text-slate-700'}>Objet de l'email</Label>
+            <Input
+              value={emailTemplate.subject}
+              onChange={(e) => setEmailTemplate(prev => ({...prev, subject: e.target.value}))}
+              className={isDarkMode ? 'bg-slate-700 text-white border-slate-600' : ''}
+            />
+          </div>
+          <div>
+            <Label className={isDarkMode ? 'text-white' : 'text-slate-700'}>Corps de l'email</Label>
+            <Textarea
+              rows={10}
+              value={emailTemplate.body}
+              onChange={(e) => setEmailTemplate(prev => ({...prev, body: e.target.value}))}
+              className={isDarkMode ? 'bg-slate-700 text-white border-slate-600' : ''}
+            />
+          </div>
+          <Button 
+            onClick={() => toast.success("Template email sauvegardé !")}
+            className={isDarkMode ? 'bg-slate-600 hover:bg-slate-500' : ''}
+          >
+            Sauvegarder le Template
+          </Button>
+        </CardContent>
+      </Card>
+      
+      <Card className={`border-0 shadow-xl transition-colors duration-300 ${isDarkMode ? 'bg-slate-800/50 backdrop-blur-sm' : 'bg-white/50 backdrop-blur-sm'}`}>
+        <CardHeader>
+          <CardTitle className={isDarkMode ? 'text-white' : 'text-slate-800'}>
+            📊 Statistiques d'Envoi
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            <div className={`p-4 rounded ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
+              <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+                {adminRequests.filter(r => r.email).length}
+              </div>
+              <div className={`text-sm ${isDarkMode ? 'text-white' : 'text-slate-600'}`}>
+                Emails envoyés
+              </div>
+            </div>
+            <div className={`p-4 rounded ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
+              <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+                {((adminRequests.filter(r => r.email).length / adminStats.total_requests) * 100 || 0).toFixed(1)}%
+              </div>
+              <div className={`text-sm ${isDarkMode ? 'text-white' : 'text-slate-600'}`}>
+                Taux d'envoi
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 
   const handleFileChange = (event, type) => {
     const file = event.target.files[0];
