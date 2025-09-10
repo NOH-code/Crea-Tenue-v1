@@ -36,6 +36,41 @@ body {
   color: #ffffff !important;
 }
 
+/* Dark mode form elements - contours blancs */
+.dark input,
+.dark textarea,
+.dark select,
+.dark button[role="combobox"],
+.dark [role="combobox"] {
+  border-color: #ffffff !important;
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus,
+.dark button[role="combobox"]:focus,
+.dark [role="combobox"]:focus {
+  border-color: #ffffff !important;
+  box-shadow: 0 0 0 1px #ffffff !important;
+}
+
+/* Dark mode cards and containers */
+.dark .border,
+.dark .border-slate-300,
+.dark .border-slate-200,
+.dark .border-dashed {
+  border-color: #ffffff !important;
+}
+
+/* Dark mode table borders */
+.dark table,
+.dark th,
+.dark td {
+  border-color: #ffffff !important;
+}
+
 /* Remove all border radius */
 .card,
 .button,
