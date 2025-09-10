@@ -868,8 +868,13 @@ async def generate_outfit(
         
         # Send email if requested
         email_sent = False
+        email_message = ""
         if email:
             email_sent = await send_email_with_image(email, generated_image, outfit_request.dict())
+            if email_sent:
+                email_message = f"Email envoyé avec succès à {email}"
+            else:
+                email_message = f"Échec de l'envoi de l'email à {email}. Vérifiez l'adresse ou contactez l'administrateur."
         
         return {
             "success": True,
@@ -877,6 +882,7 @@ async def generate_outfit(
             "image_filename": image_filename,
             "download_url": f"/api/download/{image_filename}",
             "email_sent": email_sent,
+            "email_message": email_message,
             "message": "Outfit generated successfully!"
         }
         
