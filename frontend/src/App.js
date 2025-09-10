@@ -323,6 +323,7 @@ L'équipe Blandin & Delloye`
       setIsAdminAuthenticated(true);
       setCurrentView('admin');
       setAdminCode('');
+      setAdminDialogOpen(false); // Fermer le dialog
       fetchAdminData();
       toast.success("Accès administrateur accordé");
     } else {
