@@ -343,14 +343,56 @@ function App() {
         </Card>
       </div>
 
-      {/* Requests Table */}
+      {/* Password Change Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            Toutes les Demandes
+            <Settings className="w-5 h-5" />
+            Paramètres Administration
           </CardTitle>
-          <CardDescription>Historique complet des demandes de tenues</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center space-x-4">
+            <Input
+              type="password"
+              placeholder="Nouveau mot de passe"
+              value={adminPassword}
+              onChange={(e) => setAdminPassword(e.target.value)}
+              className="max-w-xs"
+            />
+            <Button 
+              onClick={() => {
+                if (adminPassword.length >= 4) {
+                  handlePasswordChange(adminPassword);
+                  setAdminPassword('');
+                } else {
+                  toast.error("Le mot de passe doit contenir au moins 4 caractères");
+                }
+              }}
+              size="sm"
+            >
+              Changer le mot de passe
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Requests Table */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Toutes les Demandes
+              </CardTitle>
+              <CardDescription>Historique complet des demandes de tenues</CardDescription>
+            </div>
+            <Button onClick={downloadCSV} className="flex items-center gap-2" size="sm">
+              <FileDown className="w-4 h-4" />
+              Télécharger CSV
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {isLoadingAdmin ? (
@@ -363,10 +405,11 @@ function App() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Date</TableHead>
+                    <TableHead>Miniature</TableHead>
                     <TableHead>Ambiance</TableHead>
                     <TableHead>Costume</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Image</TableHead>
+                    <TableHead>Prompt</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -375,6 +418,16 @@ function App() {
                     <TableRow key={request.id}>
                       <TableCell className="text-sm">
                         {formatDate(request.timestamp)}
+                      </TableCell>
+                      <TableCell>
+                        <img 
+                          src={`${BACKEND_URL}/api/download/generated_${request.id}.png`}
+                          alt="Miniature"
+                          className="w-12 h-12 object-cover rounded border"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="text-xs">
@@ -387,27 +440,30 @@ function App() {
                       <TableCell className="text-sm">
                         {request.email || 'N/A'}
                       </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => window.open(`${BACKEND_URL}/api/download/generated_${request.id}.png`, '_blank')}
-                          className="flex items-center gap-1"
-                        >
-                          <Eye className="w-3 h-3" />
-                          Voir
-                        </Button>
+                      <TableCell className="text-xs max-w-xs">
+                        <div className="truncate" title={generatePromptPreview(request)}>
+                          {generatePromptPreview(request)}
+                        </div>
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => deleteRequest(request.id)}
-                          className="flex items-center gap-1"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          Supprimer
-                        </Button>
+                        <div className="flex space-x-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(`${BACKEND_URL}/api/download/generated_${request.id}.png`, '_blank')}
+                            className="flex items-center gap-1 px-2 py-1"
+                          >
+                            <Eye className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => deleteRequest(request.id)}
+                            className="flex items-center gap-1 px-2 py-1"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
