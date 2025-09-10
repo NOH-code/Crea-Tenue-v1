@@ -486,24 +486,35 @@ function App() {
       <Toaster position="top-right" richColors />
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-3">
+        {/* Mobile Logo Banner */}
+        <div className="md:hidden mobile-logo-banner">
+          <img 
+            src="https://customer-assets.emergentagent.com/job_tailorview/artifacts/sgrg1l59_logo%20noir%20sans%20fond.png" 
+            alt="Logo" 
+            className="h-16 object-contain"
+          />
+        </div>
+        
+        {/* Main Header */}
+        <div className="container mx-auto px-4 py-3 mobile-header">
           <div className="flex items-center justify-between">
-            {/* Logo - More prominent, especially on mobile */}
-            <div className="flex items-center">
+            {/* Desktop Logo */}
+            <div className="hidden md:flex items-center">
               <img 
                 src="https://customer-assets.emergentagent.com/job_tailorview/artifacts/sgrg1l59_logo%20noir%20sans%20fond.png" 
                 alt="Logo" 
-                className="w-16 h-16 md:w-24 md:h-24 lg:w-32 lg:h-32 object-contain"
+                className="w-24 h-24 lg:w-32 lg:h-32 object-contain"
               />
             </div>
             
             {/* Navigation - Compact buttons */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 mobile-nav-buttons">
               <Button
                 variant={currentView === 'generator' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setCurrentView('generator')}
                 className="p-2 w-10 h-10"
+                title="Générateur"
               >
                 <Camera className="w-4 h-4" />
               </Button>
@@ -520,6 +531,7 @@ function App() {
                   }
                 }}
                 className="p-2 w-10 h-10"
+                title="Administration"
               >
                 <Settings className="w-4 h-4" />
               </Button>
