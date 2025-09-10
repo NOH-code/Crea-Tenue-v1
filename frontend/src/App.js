@@ -391,9 +391,9 @@ function App() {
 
       <main className="container mx-auto px-6 py-8 max-w-7xl">
         {currentView === 'generator' ? (
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Configuration Panel */}
-          <div className="space-y-6">
+          <div className="grid lg:grid-cols-2 gap-8">
+            {/* Configuration Panel */}
+            <div className="space-y-6">
             <Card className="border-0 shadow-xl bg-white/50 backdrop-blur-sm">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2 text-slate-800">
