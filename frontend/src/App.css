@@ -13,6 +13,31 @@ body {
   background-color: #f8fafc;
 }
 
+/* Mobile logo styling */
+@media (max-width: 768px) {
+  .mobile-logo-banner {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 0.5rem 0;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  }
+  
+  .mobile-logo-banner img {
+    max-width: 80%;
+    height: auto;
+  }
+  
+  /* Compact header on mobile */
+  .mobile-header {
+    padding: 0.5rem 1rem;
+  }
+  
+  .mobile-nav-buttons {
+    gap: 0.25rem;
+  }
+}
+
 #root {
   min-height: 100vh;
 }
