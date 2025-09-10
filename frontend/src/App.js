@@ -22,6 +22,8 @@ function App() {
   const [currentView, setCurrentView] = useState('generator'); // 'generator' or 'admin'
   const [adminTab, setAdminTab] = useState('dashboard'); // 'dashboard', 'emailing', or 'users'
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [adminCode, setAdminCode] = useState('');
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]); // Carrousel des images générées
   const [emailTemplate, setEmailTemplate] = useState({
     subject: 'Votre Visualisation de Tenue de Marié Personnalisée',
