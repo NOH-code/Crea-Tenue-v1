@@ -48,7 +48,7 @@ function App() {
       setOptions(response.data);
     } catch (error) {
       console.error("Error fetching options:", error);
-      toast.error("Failed to load options");
+      toast.error("Échec du chargement des options");
     }
   };
 
@@ -90,13 +90,13 @@ function App() {
     e.preventDefault();
     
     if (!modelImage) {
-      toast.error("Please upload a model photo");
+      toast.error("Veuillez télécharger une photo de modèle");
       return;
     }
 
     if (!formData.atmosphere || !formData.suit_type || !formData.lapel_type || 
         !formData.pocket_type || !formData.shoe_type || !formData.accessory_type) {
-      toast.error("Please fill in all required fields");
+      toast.error("Veuillez remplir tous les champs obligatoires");
       return;
     }
 
@@ -127,16 +127,16 @@ function App() {
 
       if (response.data.success) {
         setGeneratedImage(response.data);
-        toast.success("Outfit generated successfully!");
+        toast.success("Tenue générée avec succès !");
         
         if (response.data.email_sent) {
-          toast.success("Image sent to your email!");
+          toast.success("Image envoyée à votre email !");
         }
       }
     } catch (error) {
       clearInterval(progressInterval);
       console.error("Error generating outfit:", error);
-      toast.error("Failed to generate outfit. Please try again.");
+      toast.error("Échec de la génération de la tenue. Veuillez réessayer.");
     } finally {
       setIsGenerating(false);
       setTimeout(() => setProgress(0), 2000);
@@ -156,19 +156,19 @@ function App() {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        toast.success("Image downloaded!");
+        toast.success("Image téléchargée !");
       } catch (error) {
-        toast.error("Failed to download image");
+        toast.error("Échec du téléchargement de l'image");
       }
     }
   };
 
   const getAtmosphereDescription = (key) => {
     const descriptions = {
-      rustic: "Rustic - Flowers and wood with floral arch",
-      seaside: "Seaside - Beach ceremony with ocean backdrop", 
-      chic_elegant: "Chic & Elegant - Castle hall like Versailles",
-      hangover: "Hangover - Las Vegas Strip style celebration"
+      rustic: "Rustique - Fleurs et bois avec arche florale",
+      seaside: "Bord de mer - Cérémonie sur la plage avec océan", 
+      chic_elegant: "Chic et élégant - Château comme Versailles",
+      hangover: "Very Bad Trip - Style célébration Las Vegas"
     };
     return descriptions[key] || key;
   };
@@ -180,20 +180,28 @@ function App() {
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-slate-800 to-slate-600 rounded-xl flex items-center justify-center">
-                <Crown className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                  TailorView
-                </h1>
-                <p className="text-sm text-slate-500">Groom Outfit Visualizer</p>
+            <div className="flex items-center space-x-4">
+              {/* Your Logo */}
+              <img 
+                src="https://customer-assets.emergentagent.com/job_tailorview/artifacts/sgrg1l59_logo%20noir%20sans%20fond.png" 
+                alt="Logo" 
+                className="w-12 h-12 object-contain"
+              />
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-slate-800 to-slate-600 rounded-xl flex items-center justify-center">
+                  <Crown className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                    TailorView
+                  </h1>
+                  <p className="text-sm text-slate-500">Visualiseur de Tenue Marié</p>
+                </div>
               </div>
             </div>
             <Badge variant="secondary" className="bg-slate-100 text-slate-700">
               <Sparkles className="w-4 h-4 mr-1" />
-              AI-Powered
+              IA-Alimenté
             </Badge>
           </div>
         </div>
@@ -207,15 +215,15 @@ function App() {
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2 text-slate-800">
                   <Camera className="w-5 h-5" />
-                  Photo Upload
+                  Téléchargement de Photos
                 </CardTitle>
-                <CardDescription>Upload your model photo and optional fabric reference</CardDescription>
+                <CardDescription>Téléchargez votre photo de modèle et référence de tissu optionnelle</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Model Image Upload */}
                 <div>
                   <Label className="text-sm font-medium text-slate-700 mb-3 block">
-                    Model Photo *
+                    Photo Modèle *
                   </Label>
                   <div className="relative">
                     <input
@@ -230,11 +238,11 @@ function App() {
                       className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-xl hover:border-slate-400 cursor-pointer transition-colors bg-slate-50/50 hover:bg-slate-100/50"
                     >
                       {modelPreview ? (
-                        <img src={modelPreview} alt="Model preview" className="w-full h-full object-cover rounded-xl" />
+                        <img src={modelPreview} alt="Aperçu modèle" className="w-full h-full object-cover rounded-xl" />
                       ) : (
                         <div className="text-center">
                           <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                          <p className="text-sm text-slate-600">Click to upload model photo</p>
+                          <p className="text-sm text-slate-600">Cliquez pour télécharger la photo du modèle</p>
                         </div>
                       )}
                     </label>
@@ -244,7 +252,7 @@ function App() {
                 {/* Fabric Image Upload */}
                 <div>
                   <Label className="text-sm font-medium text-slate-700 mb-3 block">
-                    Fabric Reference (Optional)
+                    Référence Tissu (Optionnel)
                   </Label>
                   <div className="relative">
                     <input
@@ -259,11 +267,11 @@ function App() {
                       className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-xl hover:border-slate-400 cursor-pointer transition-colors bg-slate-50/50 hover:bg-slate-100/50"
                     >
                       {fabricPreview ? (
-                        <img src={fabricPreview} alt="Fabric preview" className="w-full h-full object-cover rounded-xl" />
+                        <img src={fabricPreview} alt="Aperçu tissu" className="w-full h-full object-cover rounded-xl" />
                       ) : (
                         <div className="text-center">
                           <Palette className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                          <p className="text-sm text-slate-600">Click to upload fabric photo</p>
+                          <p className="text-sm text-slate-600">Cliquez pour télécharger la photo du tissu</p>
                         </div>
                       )}
                     </label>
@@ -276,18 +284,18 @@ function App() {
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2 text-slate-800">
                   <Star className="w-5 h-5" />
-                  Outfit Customization
+                  Personnalisation de la Tenue
                 </CardTitle>
-                <CardDescription>Customize every detail of the groom's outfit</CardDescription>
+                <CardDescription>Personnalisez chaque détail de la tenue du marié</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {/* Atmosphere */}
                   <div>
-                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Wedding Atmosphere *</Label>
+                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Ambiance Mariage *</Label>
                     <Select value={formData.atmosphere} onValueChange={(value) => handleInputChange('atmosphere', value)}>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Choose wedding atmosphere" />
+                        <SelectValue placeholder="Choisissez l'ambiance du mariage" />
                       </SelectTrigger>
                       <SelectContent>
                         {options.atmospheres?.map((atmosphere) => (
@@ -301,14 +309,17 @@ function App() {
 
                   {/* Suit Type */}
                   <div>
-                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Suit Type *</Label>
+                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Type de Costume *</Label>
                     <Select value={formData.suit_type} onValueChange={(value) => handleInputChange('suit_type', value)}>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Choose suit type" />
+                        <SelectValue placeholder="Choisissez le type de costume" />
                       </SelectTrigger>
                       <SelectContent>
                         {options.suit_types?.map((type) => (
-                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                          <SelectItem key={type} value={type}>
+                            {type === '2-piece suit' ? 'Costume 2 pièces' : 
+                             type === '3-piece suit' ? 'Costume 3 pièces' : type}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -316,14 +327,22 @@ function App() {
 
                   {/* Lapel Type */}
                   <div>
-                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Lapel Type *</Label>
+                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Type de Revers *</Label>
                     <Select value={formData.lapel_type} onValueChange={(value) => handleInputChange('lapel_type', value)}>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Choose lapel type" />
+                        <SelectValue placeholder="Choisissez le type de revers" />
                       </SelectTrigger>
                       <SelectContent>
                         {options.lapel_types?.map((type) => (
-                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                          <SelectItem key={type} value={type}>
+                            {type === 'Standard notch lapel' ? 'Revers cran standard' :
+                             type === 'Wide notch lapel' ? 'Revers cran large' :
+                             type === 'Standard peak lapel' ? 'Revers pointe standard' :
+                             type === 'Wide peak lapel' ? 'Revers pointe large' :
+                             type === 'Shawl collar with satin lapel' ? 'Col châle avec revers satin' :
+                             type === 'Standard double-breasted peak lapel' ? 'Revers pointe croisé standard' :
+                             type === 'Wide double-breasted peak lapel' ? 'Revers pointe croisé large' : type}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -331,14 +350,20 @@ function App() {
 
                   {/* Pocket Type */}
                   <div>
-                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Pocket Type *</Label>
+                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Type de Poches *</Label>
                     <Select value={formData.pocket_type} onValueChange={(value) => handleInputChange('pocket_type', value)}>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Choose pocket type" />
+                        <SelectValue placeholder="Choisissez le type de poches" />
                       </SelectTrigger>
                       <SelectContent>
                         {options.pocket_types?.map((type) => (
-                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                          <SelectItem key={type} value={type}>
+                            {type === 'Slanted, no flaps' ? 'Inclinées, sans rabats' :
+                             type === 'Slanted with flaps' ? 'Inclinées avec rabats' :
+                             type === 'Straight with flaps' ? 'Droites avec rabats' :
+                             type === 'Straight, no flaps' ? 'Droites, sans rabats' :
+                             type === 'Patch pockets' ? 'Poches plaquées' : type}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -346,20 +371,27 @@ function App() {
 
                   {/* Shoe Type */}
                   <div>
-                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Shoes *</Label>
+                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Chaussures *</Label>
                     <Select value={formData.shoe_type} onValueChange={(value) => handleInputChange('shoe_type', value)}>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Choose shoe type" />
+                        <SelectValue placeholder="Choisissez le type de chaussures" />
                       </SelectTrigger>  
                       <SelectContent>
                         {options.shoe_types?.map((type) => (
-                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                          <SelectItem key={type} value={type}>
+                            {type === 'Black loafers' ? 'Mocassins noirs' :
+                             type === 'Brown loafers' ? 'Mocassins marron' :
+                             type === 'Black one-cut' ? 'Richelieu noires' :
+                             type === 'Brown one-cut' ? 'Richelieu marron' :
+                             type === 'White sneakers' ? 'Baskets blanches' :
+                             type === 'Custom' ? 'Personnalisé' : type}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     {formData.shoe_type === 'Custom' && (
                       <Textarea
-                        placeholder="Describe your custom shoes..."
+                        placeholder="Décrivez vos chaussures personnalisées..."
                         value={formData.custom_shoe_description}
                         onChange={(e) => handleInputChange('custom_shoe_description', e.target.value)}
                         className="mt-2"
@@ -369,20 +401,24 @@ function App() {
 
                   {/* Accessory Type */}
                   <div>
-                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Accessory *</Label>
+                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Accessoire *</Label>
                     <Select value={formData.accessory_type} onValueChange={(value) => handleInputChange('accessory_type', value)}>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Choose accessory type" />
+                        <SelectValue placeholder="Choisissez le type d'accessoire" />
                       </SelectTrigger>
                       <SelectContent>
                         {options.accessory_types?.map((type) => (
-                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                          <SelectItem key={type} value={type}>
+                            {type === 'Bow tie' ? 'Nœud papillon' :
+                             type === 'Tie' ? 'Cravate' :
+                             type === 'Custom' ? 'Personnalisé' : type}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     {formData.accessory_type === 'Custom' && (
                       <Textarea
-                        placeholder="Describe your custom accessory..."
+                        placeholder="Décrivez votre accessoire personnalisé..."
                         value={formData.custom_accessory_description}
                         onChange={(e) => handleInputChange('custom_accessory_description', e.target.value)}
                         className="mt-2"
@@ -392,9 +428,9 @@ function App() {
 
                   {/* Fabric Description */}
                   <div>
-                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Fabric Description</Label>
+                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Description du Tissu</Label>
                     <Textarea
-                      placeholder="Describe the fabric (e.g., eucalyptus green wool, navy pinstripe, etc.)"
+                      placeholder="Décrivez le tissu (ex: laine vert eucalyptus, rayures marine, etc.)"
                       value={formData.fabric_description}
                       onChange={(e) => handleInputChange('fabric_description', e.target.value)}
                     />
@@ -402,14 +438,14 @@ function App() {
 
                   {/* Email */}
                   <div>
-                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Email (Optional)</Label>
+                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Email (Optionnel)</Label>
                     <Input
                       type="email"
-                      placeholder="your@email.com"
+                      placeholder="votre@email.com"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                     />
-                    <p className="text-xs text-slate-500 mt-1">Receive the generated image via email</p>
+                    <p className="text-xs text-slate-500 mt-1">Recevez l'image générée par email</p>
                   </div>
 
                   <Separator className="my-6" />
@@ -422,12 +458,12 @@ function App() {
                     {isGenerating ? (
                       <div className="flex items-center gap-2">
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        Generating...
+                        Génération en cours...
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
                         <Sparkles className="w-5 h-5" />
-                        Generate Outfit
+                        Générer la Tenue
                       </div>
                     )}
                   </Button>
@@ -436,7 +472,7 @@ function App() {
                     <div className="space-y-2">
                       <Progress value={progress} className="w-full" />
                       <p className="text-sm text-slate-600 text-center">
-                        Generating your custom outfit visualization...
+                        Génération de votre visualisation de tenue personnalisée...
                       </p>
                     </div>
                   )}
@@ -451,9 +487,9 @@ function App() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-slate-800">
                   <Star className="w-5 h-5" />
-                  Generated Outfit
+                  Tenue Générée
                 </CardTitle>
-                <CardDescription>Your custom groom outfit visualization</CardDescription>
+                <CardDescription>Votre visualisation de tenue de marié personnalisée</CardDescription>
               </CardHeader>
               <CardContent>
                 {generatedImage ? (
@@ -461,7 +497,7 @@ function App() {
                     <div className="relative rounded-xl overflow-hidden bg-slate-100">
                       <img
                         src={`${BACKEND_URL}${generatedImage.download_url}`}
-                        alt="Generated outfit"
+                        alt="Tenue générée"
                         className="w-full h-auto"
                       />
                     </div>
@@ -472,26 +508,26 @@ function App() {
                         className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                       >
                         <Download className="w-4 h-4 mr-2" />
-                        Download
+                        Télécharger
                       </Button>
                       
                       {formData.email && (
                         <Button variant="outline" className="flex-1">
                           <Mail className="w-4 h-4 mr-2" />
-                          Sent to Email
+                          Envoyé par Email
                         </Button>
                       )}
                     </div>
                     
                     <div className="text-xs text-slate-500 text-center">
-                      Generated with AI • Watermarked by TailorView
+                      Généré avec IA • Filigrane par TailorView
                     </div>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-96 text-slate-400">
                     <Camera className="w-16 h-16 mb-4" />
-                    <p className="text-lg font-medium">No outfit generated yet</p>
-                    <p className="text-sm">Upload photos and customize settings to generate</p>
+                    <p className="text-lg font-medium">Aucune tenue générée</p>
+                    <p className="text-sm">Téléchargez des photos et personnalisez les paramètres pour générer</p>
                   </div>
                 )}
               </CardContent>
