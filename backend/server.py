@@ -1066,6 +1066,16 @@ async def get_admin_stats():
         "generated_images_count": len(list(Path("/app/generated_images").glob("*.png"))) if Path("/app/generated_images").exists() else 0
     }
 
+@api_router.get("/admin/email-queue")
+async def get_email_queue():
+    """Get pending email queue for admin view"""
+    try:
+        queue_items = await db.email_queue.find({"status": "pending"}).sort("timestamp", -1).to_list(100)
+        return {"success": True, "queue": queue_items}
+    except Exception as e:
+        logger.error(f"Error fetching email queue: {e}")
+        return {"success": False, "queue": []}
+
 @api_router.delete("/admin/request/{request_id}")
 async def delete_request(request_id: str):
     """Delete a specific request and its associated image"""
