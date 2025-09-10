@@ -333,13 +333,14 @@ L'équipe Blandin & Delloye`
   };
 
   const AdminCodeDialog = () => (
-    <Dialog>
+    <Dialog open={adminDialogOpen} onOpenChange={setAdminDialogOpen}>
       <DialogTrigger asChild>
         <Button
           variant="outline"
           size="sm"
           className="p-2 w-10 h-10"
           title="Administration"
+          onClick={() => setAdminDialogOpen(true)}
         >
           <Settings className="w-4 h-4" />
         </Button>
