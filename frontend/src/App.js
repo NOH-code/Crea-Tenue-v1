@@ -1105,26 +1105,59 @@ L'équipe Blandin & Delloye`
                       
                       {/* Carrousel des images générées */}
                       {generatedImages.length > 1 && (
-                        <div className="space-y-2">
-                          <h4 className={`text-sm font-medium ${isDarkMode ? 'text-white' : 'text-slate-700'}`}>
-                            Autres variantes ({generatedImages.length})
-                          </h4>
+                        <div className="mt-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className={`text-sm font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                              Autres variantes ({generatedImages.length})
+                            </h4>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={selectAllImages}
+                                className="text-xs h-6 px-2"
+                              >
+                                Tout sélectionner
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={deselectAllImages}
+                                className="text-xs h-6 px-2"
+                              >
+                                Tout désélectionner
+                              </Button>
+                            </div>
+                          </div>
                           <div className="flex space-x-2 overflow-x-auto pb-2">
                             {generatedImages.map((img, index) => (
-                              <div key={index} className="flex-shrink-0">
-                                <img
-                                  src={`${BACKEND_URL}${img.download_url}`}
-                                  alt={`Variante ${index + 1}`}
-                                  className={`w-16 h-16 object-cover cursor-pointer border-2 transition-colors ${
-                                    generatedImage.request_id === img.request_id 
-                                      ? 'border-blue-500' 
-                                      : isDarkMode ? 'border-slate-600' : 'border-slate-300'
-                                  }`}
-                                  onClick={() => setGeneratedImage(img)}
-                                />
+                              <div key={index} className="flex-shrink-0 relative">
+                                <div className="relative">
+                                  <img
+                                    src={`${BACKEND_URL}${img.download_url}`}
+                                    alt={`Variante ${index + 1}`}
+                                    className={`w-16 h-16 object-cover cursor-pointer border-2 transition-colors ${
+                                      generatedImage.request_id === img.request_id 
+                                        ? 'border-blue-500' 
+                                        : isDarkMode ? 'border-slate-600' : 'border-slate-300'
+                                    }`}
+                                    onClick={() => setGeneratedImage(img)}
+                                  />
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedImages.includes(img.request_id)}
+                                    onChange={() => toggleImageSelection(img.request_id)}
+                                    className="absolute top-1 right-1 w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                                  />
+                                </div>
                               </div>
                             ))}
                           </div>
+                          {selectedImages.length > 0 && (
+                            <p className={`text-xs mt-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                              {selectedImages.length} image(s) sélectionnée(s) pour envoi
+                            </p>
+                          )}
                         </div>
                       )}
                       
