@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
-import { Upload, Camera, Palette, Send, Download, Mail, Sparkles, Crown, Star, Settings, Users, BarChart3, Trash2, Eye, FileDown, Moon, Sun, LogIn, UserPlus } from "lucide-react";
+import { Upload, Camera, Palette, Send, Download, Mail, Sparkles, Crown, Star, Settings, Users, BarChart3, Trash2, Eye, FileDown, Moon, Sun } from "lucide-react";
 import { Button } from "./components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
@@ -13,7 +13,6 @@ import { Progress } from "./components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./components/ui/dialog";
 import { toast, Toaster } from "sonner";
-import { AuthDialog, UserProfile } from "./components/Auth";
 import axios from "axios";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -22,9 +21,6 @@ const API = `${BACKEND_URL}/api`;
 function App() {
   const [currentView, setCurrentView] = useState('generator'); // 'generator' or 'admin'
   const [adminTab, setAdminTab] = useState('dashboard'); // 'dashboard', 'emailing', or 'users'
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]); // Carrousel des images générées
   const [emailTemplate, setEmailTemplate] = useState({
@@ -68,44 +64,12 @@ L'équipe Blandin & Delloye`
   const [adminStats, setAdminStats] = useState({});
   const [isLoadingAdmin, setIsLoadingAdmin] = useState(false);
 
-  // Auth state management
-  const [allUsers, setAllUsers] = useState([]);
-
   useEffect(() => {
-    // Check for existing auth
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
-    
-    if (token && user) {
-      setIsAuthenticated(true);
-      setCurrentUser(JSON.parse(user));
-      setupAxiosAuth(token);
-    }
-    
     fetchOptions();
-    if (currentView === 'admin' && isAuthenticated) {
+    if (currentView === 'admin') {
       fetchAdminData();
     }
-  }, [currentView, isAuthenticated]);
-
-  const setupAxiosAuth = (token) => {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  };
-
-  const handleLogin = (user, token) => {
-    setIsAuthenticated(true);
-    setCurrentUser(user);
-    setupAxiosAuth(token);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    delete axios.defaults.headers.common['Authorization'];
-    setIsAuthenticated(false);
-    setCurrentUser(null);
-    setCurrentView('generator');
-  };
+  }, [currentView]);
 
   const fetchOptions = async () => {
     try {
@@ -126,12 +90,6 @@ L'équipe Blandin & Delloye`
       ]);
       setAdminRequests(requestsResponse.data);
       setAdminStats(statsResponse.data);
-      
-      // Fetch users if admin
-      if (currentUser?.role === 'admin') {
-        const usersResponse = await axios.get(`${API}/admin/users`);
-        setAllUsers(usersResponse.data);
-      }
     } catch (error) {
       console.error("Error fetching admin data:", error);
       toast.error("Échec du chargement des données admin");
@@ -152,138 +110,6 @@ L'équipe Blandin & Delloye`
       toast.error("Échec de la suppression");
     }
   };
-
-  const downloadCSV = () => {
-    const headers = ['Date', 'Ambiance', 'Costume', 'Revers', 'Poches', 'Chaussures', 'Accessoire', 'Email', 'Tissu', 'Prompt'];
-    const csvData = adminRequests.map(request => [
-      formatDate(request.timestamp),
-      getAtmosphereDescription(request.atmosphere),
-      request.suit_type === '2-piece suit' ? '2 pièces' : '3 pièces',
-      request.lapel_type,
-      request.pocket_type,
-      request.shoe_type,
-      request.accessory_type,
-      request.email || 'N/A',
-      request.fabric_description || 'N/A',
-      `"${generatePromptPreview(request)}"`
-    ]);
-
-    const csvContent = [
-      headers.join(','),
-      ...csvData.map(row => row.join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `demandes_tailorview_${new Date().getTime()}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success("CSV téléchargé !");
-  };
-
-  const generatePromptPreview = (request) => {
-    return `Costume ${request.suit_type}, ambiance ${request.atmosphere}, revers ${request.lapel_type}, poches ${request.pocket_type}, chaussures ${request.shoe_type}, accessoire ${request.accessory_type}`;
-  };
-
-  const sendMultipleImages = async () => {
-    if (!formData.email) {
-      toast.error("Veuillez saisir un email");
-      return;
-    }
-    
-    if (generatedImages.length === 0) {
-      toast.error("Aucune image à envoyer");
-      return;
-    }
-    
-    try {
-      const imageIds = generatedImages.map(img => img.request_id);
-      const response = await axios.post(`${API}/send-multiple`, {
-        email: formData.email,
-        imageIds: imageIds,
-        subject: emailTemplate.subject,
-        body: emailTemplate.body
-      });
-      
-      if (response.data.success) {
-        toast.success(`${generatedImages.length} images envoyées par email !`);
-      }
-    } catch (error) {
-      toast.error("Échec de l'envoi multiple");
-    }
-  };
-
-  const EmailingTab = () => (
-    <div className="space-y-6">
-      <Card className={`border-0 shadow-xl transition-colors duration-300 ${isDarkMode ? 'bg-slate-800/50 backdrop-blur-sm' : 'bg-white/50 backdrop-blur-sm'}`}>
-        <CardHeader>
-          <CardTitle className={isDarkMode ? 'text-white' : 'text-slate-800'}>
-            📧 Gestion des Templates Email
-          </CardTitle>
-          <CardDescription className={isDarkMode ? 'text-white' : ''}>
-            Personnalisez les emails envoyés aux clients
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label className={isDarkMode ? 'text-white' : 'text-slate-700'}>Objet de l'email</Label>
-            <Input
-              value={emailTemplate.subject}
-              onChange={(e) => setEmailTemplate(prev => ({...prev, subject: e.target.value}))}
-              className={isDarkMode ? 'bg-slate-700 text-white border-slate-600' : ''}
-            />
-          </div>
-          <div>
-            <Label className={isDarkMode ? 'text-white' : 'text-slate-700'}>Corps de l'email</Label>
-            <Textarea
-              rows={10}
-              value={emailTemplate.body}
-              onChange={(e) => setEmailTemplate(prev => ({...prev, body: e.target.value}))}
-              className={isDarkMode ? 'bg-slate-700 text-white border-slate-600' : ''}
-            />
-          </div>
-          <Button 
-            onClick={() => toast.success("Template email sauvegardé !")}
-            className={isDarkMode ? 'bg-slate-600 hover:bg-slate-500' : ''}
-          >
-            Sauvegarder le Template
-          </Button>
-        </CardContent>
-      </Card>
-      
-      <Card className={`border-0 shadow-xl transition-colors duration-300 ${isDarkMode ? 'bg-slate-800/50 backdrop-blur-sm' : 'bg-white/50 backdrop-blur-sm'}`}>
-        <CardHeader>
-          <CardTitle className={isDarkMode ? 'text-white' : 'text-slate-800'}>
-            📊 Statistiques d'Envoi
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div className={`p-4 rounded ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
-              <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-                {adminRequests.filter(r => r.email).length}
-              </div>
-              <div className={`text-sm ${isDarkMode ? 'text-white' : 'text-slate-600'}`}>
-                Emails envoyés
-              </div>
-            </div>
-            <div className={`p-4 rounded ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
-              <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-                {((adminRequests.filter(r => r.email).length / adminStats.total_requests) * 100 || 0).toFixed(1)}%
-              </div>
-              <div className={`text-sm ${isDarkMode ? 'text-white' : 'text-slate-600'}`}>
-                Taux d'envoi
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
 
   const handleFileChange = (event, type) => {
     const file = event.target.files[0];
@@ -445,6 +271,138 @@ L'équipe Blandin & Delloye`
       minute: '2-digit'
     });
   };
+
+  const generatePromptPreview = (request) => {
+    return `Costume ${request.suit_type}, ambiance ${request.atmosphere}, revers ${request.lapel_type}, poches ${request.pocket_type}, chaussures ${request.shoe_type}, accessoire ${request.accessory_type}`;
+  };
+
+  const sendMultipleImages = async () => {
+    if (!formData.email) {
+      toast.error("Veuillez saisir un email");
+      return;
+    }
+    
+    if (generatedImages.length === 0) {
+      toast.error("Aucune image à envoyer");
+      return;
+    }
+    
+    try {
+      const imageIds = generatedImages.map(img => img.request_id);
+      const response = await axios.post(`${API}/send-multiple`, {
+        email: formData.email,
+        imageIds: imageIds,
+        subject: emailTemplate.subject,
+        body: emailTemplate.body
+      });
+      
+      if (response.data.success) {
+        toast.success(`${generatedImages.length} images envoyées par email !`);
+      }
+    } catch (error) {
+      toast.error("Échec de l'envoi multiple");
+    }
+  };
+
+  const downloadCSV = () => {
+    const headers = ['Date', 'Ambiance', 'Costume', 'Revers', 'Poches', 'Chaussures', 'Accessoire', 'Email', 'Tissu', 'Prompt'];
+    const csvData = adminRequests.map(request => [
+      formatDate(request.timestamp),
+      getAtmosphereDescription(request.atmosphere),
+      request.suit_type === '2-piece suit' ? '2 pièces' : '3 pièces',
+      request.lapel_type,
+      request.pocket_type,
+      request.shoe_type,
+      request.accessory_type,
+      request.email || 'N/A',
+      request.fabric_description || 'N/A',
+      `"${generatePromptPreview(request)}"`
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `demandes_tailorview_${new Date().getTime()}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("CSV téléchargé !");
+  };
+
+  const EmailingTab = () => (
+    <div className="space-y-6">
+      <Card className={`border-0 shadow-xl transition-colors duration-300 ${isDarkMode ? 'bg-slate-800/50 backdrop-blur-sm' : 'bg-white/50 backdrop-blur-sm'}`}>
+        <CardHeader>
+          <CardTitle className={isDarkMode ? 'text-white' : 'text-slate-800'}>
+            📧 Gestion des Templates Email
+          </CardTitle>
+          <CardDescription className={isDarkMode ? 'text-white' : ''}>
+            Personnalisez les emails envoyés aux clients
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label className={isDarkMode ? 'text-white' : 'text-slate-700'}>Objet de l'email</Label>
+            <Input
+              value={emailTemplate.subject}
+              onChange={(e) => setEmailTemplate(prev => ({...prev, subject: e.target.value}))}
+              className={isDarkMode ? 'bg-slate-700 text-white border-slate-600' : ''}
+            />
+          </div>
+          <div>
+            <Label className={isDarkMode ? 'text-white' : 'text-slate-700'}>Corps de l'email</Label>
+            <Textarea
+              rows={10}
+              value={emailTemplate.body}
+              onChange={(e) => setEmailTemplate(prev => ({...prev, body: e.target.value}))}
+              className={isDarkMode ? 'bg-slate-700 text-white border-slate-600' : ''}
+            />
+          </div>
+          <Button 
+            onClick={() => toast.success("Template email sauvegardé !")}
+            className={isDarkMode ? 'bg-slate-600 hover:bg-slate-500' : ''}
+          >
+            Sauvegarder le Template
+          </Button>
+        </CardContent>
+      </Card>
+      
+      <Card className={`border-0 shadow-xl transition-colors duration-300 ${isDarkMode ? 'bg-slate-800/50 backdrop-blur-sm' : 'bg-white/50 backdrop-blur-sm'}`}>
+        <CardHeader>
+          <CardTitle className={isDarkMode ? 'text-white' : 'text-slate-800'}>
+            📊 Statistiques d'Envoi
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            <div className={`p-4 rounded ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
+              <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+                {adminRequests.filter(r => r.email).length}
+              </div>
+              <div className={`text-sm ${isDarkMode ? 'text-white' : 'text-slate-600'}`}>
+                Emails envoyés
+              </div>
+            </div>
+            <div className={`p-4 rounded ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
+              <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+                {((adminRequests.filter(r => r.email).length / adminStats.total_requests) * 100 || 0).toFixed(1)}%
+              </div>
+              <div className={`text-sm ${isDarkMode ? 'text-white' : 'text-slate-600'}`}>
+                Taux d'envoi
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 
   const AdminView = () => (
     <div className="space-y-6">
@@ -657,449 +615,382 @@ L'équipe Blandin & Delloye`
               >
                 {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </Button>
-
-              {isAuthenticated ? (
-                <>
-                  <Button
-                    variant={currentView === 'generator' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setCurrentView('generator')}
-                    className="p-2 w-10 h-10"
-                    title="Générateur"
-                  >
-                    <Camera className="w-4 h-4" />
-                  </Button>
-                  
-                  {(currentUser?.role === 'user' || currentUser?.role === 'admin') && (
-                    <Button
-                      variant={currentView === 'admin' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => {
-                        setCurrentView('admin');
-                        fetchAdminData();
-                      }}
-                      className="p-2 w-10 h-10"
-                      title="Administration"
-                    >
-                      <Settings className="w-4 h-4" />
-                    </Button>
-                  )}
-                </>
-              ) : (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowAuthDialog(true)}
-                    className="p-2 w-10 h-10"
-                    title="Connexion"
-                  >
-                    <LogIn className="w-4 h-4" />
-                  </Button>
-                </>
-              )}
+              
+              <Button
+                variant={currentView === 'generator' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setCurrentView('generator')}
+                className="p-2 w-10 h-10"
+                title="Générateur"
+              >
+                <Camera className="w-4 h-4" />
+              </Button>
+              
+              <Button
+                variant={currentView === 'admin' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  setCurrentView('admin');
+                  fetchAdminData();
+                }}
+                className="p-2 w-10 h-10"
+                title="Administration"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-6 py-8 max-w-7xl">
-        {/* Auth Dialog */}
-        <AuthDialog 
-          isOpen={showAuthDialog} 
-          onClose={() => setShowAuthDialog(false)}
-          onLogin={handleLogin}
-          isDarkMode={isDarkMode}
-        />
-
-        {!isAuthenticated ? (
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <Card className={`max-w-md mx-auto ${isDarkMode ? 'bg-slate-800 text-white border-white' : ''}`}>
-              <CardHeader className="text-center">
-                <CardTitle className={`text-2xl ${isDarkMode ? 'text-white' : ''}`}>
-                  Bienvenue sur TailorView
-                </CardTitle>
-                <CardDescription className={isDarkMode ? 'text-white' : ''}>
-                  Connectez-vous pour accéder à nos services de visualisation de tenues de marié
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button 
-                  onClick={() => setShowAuthDialog(true)} 
-                  className="w-full"
-                >
-                  Se connecter / Créer un compte
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        ) : (
-          <>
-            {/* User Profile Bar */}
-            <UserProfile 
-              user={currentUser} 
-              onLogout={handleLogout} 
-              isDarkMode={isDarkMode}
-            />
-
-            {currentView === 'generator' ? (
-              <div className="text-center py-8">
-                <h2 className={`text-xl ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-                  Générateur de tenues - En cours de développement
-                </h2>
-                <p className={isDarkMode ? 'text-white' : 'text-slate-600'}>
-                  Fonctionnalité disponible prochainement
-                </p>
-              </div>
-            ) : (
-              <AdminView />
-            )}
-          </>
-        )}
-      </main>
+        {currentView === 'generator' ? (
+          <div className="grid lg:grid-cols-2 gap-8">
             {/* Configuration Panel */}
             <div className="space-y-6">
-            <Card className={`border-0 shadow-xl transition-colors duration-300 ${isDarkMode ? 'bg-slate-800/50 backdrop-blur-sm' : 'bg-white/50 backdrop-blur-sm'}`}>
-              <CardHeader className="pb-4">
-                <CardTitle className={`flex items-center gap-2 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
-                  <Camera className="w-5 h-5" />
-                  Téléchargement de Photos
-                </CardTitle>
-                <CardDescription className={isDarkMode ? 'text-slate-400' : ''}>Téléchargez votre photo de modèle et référence de tissu optionnelle</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Model Image Upload */}
-                <div>
-                  <Label className={`text-sm font-medium mb-3 block ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                    Photo Modèle *
-                  </Label>
-                  <div className="relative">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileChange(e, 'model')}
-                      className="hidden"
-                      id="model-upload"
-                    />
-                    <label
-                      htmlFor="model-upload"
-                      className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed cursor-pointer transition-colors ${isDarkMode ? 'border-slate-600 bg-slate-700/50 hover:bg-slate-600/50 hover:border-slate-500' : 'border-slate-300 bg-slate-50/50 hover:bg-slate-100/50 hover:border-slate-400'}`}
-                    >
-                      {modelPreview ? (
-                        <img src={modelPreview} alt="Aperçu modèle" className="w-full h-full object-cover" />
+              <Card className={`border-0 shadow-xl transition-colors duration-300 ${isDarkMode ? 'bg-slate-800/50 backdrop-blur-sm' : 'bg-white/50 backdrop-blur-sm'}`}>
+                <CardHeader className="pb-4">
+                  <CardTitle className={`flex items-center gap-2 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
+                    <Camera className="w-5 h-5" />
+                    Téléchargement de Photos
+                  </CardTitle>
+                  <CardDescription className={isDarkMode ? 'text-slate-400' : ''}>Téléchargez votre photo de modèle et référence de tissu optionnelle</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Model Image Upload */}
+                  <div>
+                    <Label className={`text-sm font-medium mb-3 block ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                      Photo Modèle *
+                    </Label>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileChange(e, 'model')}
+                        className="hidden"
+                        id="model-upload"
+                      />
+                      <label
+                        htmlFor="model-upload"
+                        className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed cursor-pointer transition-colors ${isDarkMode ? 'border-slate-600 bg-slate-700/50 hover:bg-slate-600/50 hover:border-slate-500' : 'border-slate-300 bg-slate-50/50 hover:bg-slate-100/50 hover:border-slate-400'}`}
+                      >
+                        {modelPreview ? (
+                          <img src={modelPreview} alt="Aperçu modèle" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="text-center">
+                            <Upload className={`w-8 h-8 mx-auto mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`} />
+                            <p className={`text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Cliquez pour télécharger la photo du modèle</p>
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className={`border-0 shadow-xl transition-colors duration-300 ${isDarkMode ? 'bg-slate-800/50 backdrop-blur-sm' : 'bg-white/50 backdrop-blur-sm'}`}>
+                <CardHeader className="pb-4">
+                  <CardTitle className={`flex items-center gap-2 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
+                    <Star className="w-5 h-5" />
+                    Personnalisation de la Tenue
+                  </CardTitle>
+                  <CardDescription className={isDarkMode ? 'text-slate-400' : ''}>Personnalisez chaque détail de la tenue du marié</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Atmosphere */}
+                    <div>
+                      <Label className={`text-sm font-medium mb-2 block ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Ambiance Mariage *</Label>
+                      <Select value={formData.atmosphere} onValueChange={(value) => handleInputChange('atmosphere', value)}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Choisissez l'ambiance du mariage" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {options.atmospheres?.map((atmosphere) => (
+                            <SelectItem key={atmosphere} value={atmosphere}>
+                              {getAtmosphereDescription(atmosphere)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Suit Type */}
+                    <div>
+                      <Label className={`text-sm font-medium mb-2 block ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Type de Costume *</Label>
+                      <Select value={formData.suit_type} onValueChange={(value) => handleInputChange('suit_type', value)}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Choisissez le type de costume" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {options.suit_types?.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type === '2-piece suit' ? 'Costume 2 pièces' : 
+                               type === '3-piece suit' ? 'Costume 3 pièces' : type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Lapel Type */}
+                    <div>
+                      <Label className={`text-sm font-medium mb-2 block ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Type de Revers *</Label>
+                      <Select value={formData.lapel_type} onValueChange={(value) => handleInputChange('lapel_type', value)}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Choisissez le type de revers" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {options.lapel_types?.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type === 'Standard notch lapel' ? 'Revers cran standard' :
+                               type === 'Wide notch lapel' ? 'Revers cran large' :
+                               type === 'Standard peak lapel' ? 'Revers pointe standard' :
+                               type === 'Wide peak lapel' ? 'Revers pointe large' :
+                               type === 'Shawl collar with satin lapel' ? 'Col châle avec revers satin' :
+                               type === 'Standard double-breasted peak lapel' ? 'Revers pointe croisé standard' :
+                               type === 'Wide double-breasted peak lapel' ? 'Revers pointe croisé large' : type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Pocket Type */}
+                    <div>
+                      <Label className={`text-sm font-medium mb-2 block ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Type de Poches *</Label>
+                      <Select value={formData.pocket_type} onValueChange={(value) => handleInputChange('pocket_type', value)}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Choisissez le type de poches" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {options.pocket_types?.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type === 'Slanted, no flaps' ? 'Inclinées, sans rabats' :
+                               type === 'Slanted with flaps' ? 'Inclinées avec rabats' :
+                               type === 'Straight with flaps' ? 'Droites avec rabats' :
+                               type === 'Straight, no flaps' ? 'Droites, sans rabats' :
+                               type === 'Patch pockets' ? 'Poches plaquées' : type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Fabric Description */}
+                    <div>
+                      <Label className={`text-sm font-medium mb-2 block ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Description du Tissu</Label>
+                      <Select value={formData.fabric_description === 'PHOTO' ? 'photo' : 'text'} 
+                              onValueChange={(value) => {
+                                if (value === 'text') {
+                                  handleInputChange('fabric_description', '');
+                                } else {
+                                  handleInputChange('fabric_description', 'PHOTO');
+                                }
+                              }}>
+                        <SelectTrigger className="w-full mb-2">
+                          <SelectValue placeholder="Choisissez le type de description" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="text">Description texte</SelectItem>
+                          <SelectItem value="photo">Exemple photo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      {formData.fabric_description === 'PHOTO' ? (
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileChange(e, 'fabric')}
+                            className="hidden"
+                            id="fabric-upload"
+                          />
+                          <label
+                            htmlFor="fabric-upload"
+                            className={`flex flex-col items-center justify-center w-full h-24 border-2 border-dashed cursor-pointer transition-colors ${isDarkMode ? 'border-slate-600 bg-slate-700/50 hover:bg-slate-600/50 hover:border-slate-500' : 'border-slate-300 bg-slate-50/50 hover:bg-slate-100/50 hover:border-slate-400'}`}
+                          >
+                            {fabricPreview ? (
+                              <img src={fabricPreview} alt="Aperçu tissu" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="text-center">
+                                <Palette className={`w-6 h-6 mx-auto mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`} />
+                                <p className={`text-xs ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Photo du tissu</p>
+                              </div>
+                            )}
+                          </label>
+                        </div>
                       ) : (
-                        <div className="text-center">
-                          <Upload className={`w-8 h-8 mx-auto mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`} />
-                          <p className={`text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Cliquez pour télécharger la photo du modèle</p>
+                        <Textarea
+                          placeholder="Décrivez le tissu (ex: laine vert eucalyptus, rayures marine, etc.)"
+                          value={formData.fabric_description}
+                          onChange={(e) => handleInputChange('fabric_description', e.target.value)}
+                          className={isDarkMode ? 'bg-slate-700 text-white border-white' : ''}
+                        />
+                      )}
+                    </div>
+
+                    {/* Shoe Type */}
+                    <div>
+                      <Label className={`text-sm font-medium mb-2 block ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Chaussures *</Label>
+                      <Select value={formData.shoe_type} onValueChange={(value) => handleInputChange('shoe_type', value)}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Choisissez le type de chaussures" />
+                        </SelectTrigger>  
+                        <SelectContent>
+                          <SelectItem value="Black loafers">Mocassins noirs</SelectItem>
+                          <SelectItem value="Brown loafers">Mocassins marron</SelectItem>
+                          <SelectItem value="Black one-cut">Richelieu noires</SelectItem>
+                          <SelectItem value="Brown one-cut">Richelieu marron</SelectItem>
+                          <SelectItem value="White sneakers">Baskets blanches</SelectItem>
+                          <SelectItem value="Description texte">Description texte</SelectItem>
+                          <SelectItem value="Exemple photo">Exemple photo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      {formData.shoe_type === 'Description texte' && (
+                        <Textarea
+                          placeholder="Décrivez vos chaussures personnalisées..."
+                          value={formData.custom_shoe_description}
+                          onChange={(e) => handleInputChange('custom_shoe_description', e.target.value)}
+                          className={`mt-2 ${isDarkMode ? 'bg-slate-700 text-white border-white' : ''}`}
+                        />
+                      )}
+                      
+                      {formData.shoe_type === 'Exemple photo' && (
+                        <div className="relative mt-2">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileChange(e, 'shoe')}
+                            className="hidden"
+                            id="shoe-upload"
+                          />
+                          <label
+                            htmlFor="shoe-upload"
+                            className={`flex flex-col items-center justify-center w-full h-24 border-2 border-dashed cursor-pointer transition-colors ${isDarkMode ? 'border-slate-600 bg-slate-700/50 hover:bg-slate-600/50 hover:border-slate-500' : 'border-slate-300 bg-slate-50/50 hover:bg-slate-100/50 hover:border-slate-400'}`}
+                          >
+                            {shoePreview ? (
+                              <img src={shoePreview} alt="Aperçu chaussures" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="text-center">
+                                <Upload className={`w-6 h-6 mx-auto mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`} />
+                                <p className={`text-xs ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Photo des chaussures</p>
+                              </div>
+                            )}
+                          </label>
                         </div>
                       )}
-                    </label>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className={`border-0 shadow-xl transition-colors duration-300 ${isDarkMode ? 'bg-slate-800/50 backdrop-blur-sm' : 'bg-white/50 backdrop-blur-sm'}`}>
-              <CardHeader className="pb-4">
-                <CardTitle className={`flex items-center gap-2 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
-                  <Star className="w-5 h-5" />
-                  Personnalisation de la Tenue
-                </CardTitle>
-                <CardDescription className={isDarkMode ? 'text-slate-400' : ''}>Personnalisez chaque détail de la tenue du marié</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Atmosphere */}
-                  <div>
-                    <Label className={`text-sm font-medium mb-2 block ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Ambiance Mariage *</Label>
-                    <Select value={formData.atmosphere} onValueChange={(value) => handleInputChange('atmosphere', value)}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Choisissez l'ambiance du mariage" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {options.atmospheres?.map((atmosphere) => (
-                          <SelectItem key={atmosphere} value={atmosphere}>
-                            {getAtmosphereDescription(atmosphere)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Suit Type */}
-                  <div>
-                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Type de Costume *</Label>
-                    <Select value={formData.suit_type} onValueChange={(value) => handleInputChange('suit_type', value)}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Choisissez le type de costume" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {options.suit_types?.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type === '2-piece suit' ? 'Costume 2 pièces' : 
-                             type === '3-piece suit' ? 'Costume 3 pièces' : type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Lapel Type */}
-                  <div>
-                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Type de Revers *</Label>
-                    <Select value={formData.lapel_type} onValueChange={(value) => handleInputChange('lapel_type', value)}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Choisissez le type de revers" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {options.lapel_types?.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type === 'Standard notch lapel' ? 'Revers cran standard' :
-                             type === 'Wide notch lapel' ? 'Revers cran large' :
-                             type === 'Standard peak lapel' ? 'Revers pointe standard' :
-                             type === 'Wide peak lapel' ? 'Revers pointe large' :
-                             type === 'Shawl collar with satin lapel' ? 'Col châle avec revers satin' :
-                             type === 'Standard double-breasted peak lapel' ? 'Revers pointe croisé standard' :
-                             type === 'Wide double-breasted peak lapel' ? 'Revers pointe croisé large' : type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Pocket Type */}
-                  <div>
-                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Type de Poches *</Label>
-                    <Select value={formData.pocket_type} onValueChange={(value) => handleInputChange('pocket_type', value)}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Choisissez le type de poches" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {options.pocket_types?.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type === 'Slanted, no flaps' ? 'Inclinées, sans rabats' :
-                             type === 'Slanted with flaps' ? 'Inclinées avec rabats' :
-                             type === 'Straight with flaps' ? 'Droites avec rabats' :
-                             type === 'Straight, no flaps' ? 'Droites, sans rabats' :
-                             type === 'Patch pockets' ? 'Poches plaquées' : type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Fabric Description */}
-                  <div>
-                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Description du Tissu</Label>
-                    <Select value={formData.fabric_description === 'PHOTO' ? 'photo' : 'text'} 
-                            onValueChange={(value) => {
-                              if (value === 'text') {
-                                handleInputChange('fabric_description', '');
-                              } else {
-                                handleInputChange('fabric_description', 'PHOTO');
-                              }
-                            }}>
-                      <SelectTrigger className="w-full mb-2">
-                        <SelectValue placeholder="Choisissez le type de description" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="text">Description texte</SelectItem>
-                        <SelectItem value="photo">Exemple photo</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    
-                    {formData.fabric_description === 'PHOTO' ? (
-                      <div className="relative">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleFileChange(e, 'fabric')}
-                          className="hidden"
-                          id="fabric-upload"
-                        />
-                        <label
-                          htmlFor="fabric-upload"
-                          className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 rounded-xl hover:border-slate-400 cursor-pointer transition-colors bg-slate-50/50 hover:bg-slate-100/50"
-                        >
-                          {fabricPreview ? (
-                            <img src={fabricPreview} alt="Aperçu tissu" className="w-full h-full object-cover rounded-xl" />
-                          ) : (
-                            <div className="text-center">
-                              <Palette className="w-6 h-6 text-slate-400 mx-auto mb-1" />
-                              <p className="text-xs text-slate-600">Photo du tissu</p>
-                            </div>
-                          )}
-                        </label>
-                      </div>
-                    ) : (
-                      <Textarea
-                        placeholder="Décrivez le tissu (ex: laine vert eucalyptus, rayures marine, etc.)"
-                        value={formData.fabric_description}
-                        onChange={(e) => handleInputChange('fabric_description', e.target.value)}
-                      />
-                    )}
-                  </div>
-
-                  {/* Shoe Type */}
-                  <div>
-                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Chaussures *</Label>
-                    <Select value={formData.shoe_type} onValueChange={(value) => handleInputChange('shoe_type', value)}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Choisissez le type de chaussures" />
-                      </SelectTrigger>  
-                      <SelectContent>
-                        <SelectItem value="Black loafers">Mocassins noirs</SelectItem>
-                        <SelectItem value="Brown loafers">Mocassins marron</SelectItem>
-                        <SelectItem value="Black one-cut">Richelieu noires</SelectItem>
-                        <SelectItem value="Brown one-cut">Richelieu marron</SelectItem>
-                        <SelectItem value="White sneakers">Baskets blanches</SelectItem>
-                        <SelectItem value="Description texte">Description texte</SelectItem>
-                        <SelectItem value="Exemple photo">Exemple photo</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    
-                    {formData.shoe_type === 'Description texte' && (
-                      <Textarea
-                        placeholder="Décrivez vos chaussures personnalisées..."
-                        value={formData.custom_shoe_description}
-                        onChange={(e) => handleInputChange('custom_shoe_description', e.target.value)}
-                        className="mt-2"
-                      />
-                    )}
-                    
-                    {formData.shoe_type === 'Exemple photo' && (
-                      <div className="relative mt-2">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleFileChange(e, 'shoe')}
-                          className="hidden"
-                          id="shoe-upload"
-                        />
-                        <label
-                          htmlFor="shoe-upload"
-                          className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 rounded-xl hover:border-slate-400 cursor-pointer transition-colors bg-slate-50/50 hover:bg-slate-100/50"
-                        >
-                          {shoePreview ? (
-                            <img src={shoePreview} alt="Aperçu chaussures" className="w-full h-full object-cover rounded-xl" />
-                          ) : (
-                            <div className="text-center">
-                              <Upload className="w-6 h-6 text-slate-400 mx-auto mb-1" />
-                              <p className="text-xs text-slate-600">Photo des chaussures</p>
-                            </div>
-                          )}
-                        </label>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Accessory Type */}
-                  <div>
-                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Accessoire *</Label>
-                    <Select value={formData.accessory_type} onValueChange={(value) => handleInputChange('accessory_type', value)}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Choisissez le type d'accessoire" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Bow tie">Nœud papillon</SelectItem>
-                        <SelectItem value="Tie">Cravate</SelectItem>
-                        <SelectItem value="Description texte">Description texte</SelectItem>
-                        <SelectItem value="Photo">Photo</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    
-                    {formData.accessory_type === 'Description texte' && (
-                      <Textarea
-                        placeholder="Décrivez votre accessoire personnalisé..."
-                        value={formData.custom_accessory_description}
-                        onChange={(e) => handleInputChange('custom_accessory_description', e.target.value)}
-                        className="mt-2"
-                      />
-                    )}
-                    
-                    {formData.accessory_type === 'Photo' && (
-                      <div className="relative mt-2">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleFileChange(e, 'accessory')}
-                          className="hidden"
-                          id="accessory-upload"
-                        />
-                        <label
-                          htmlFor="accessory-upload"
-                          className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 rounded-xl hover:border-slate-400 cursor-pointer transition-colors bg-slate-50/50 hover:bg-slate-100/50"
-                        >
-                          {accessoryPreview ? (
-                            <img src={accessoryPreview} alt="Aperçu accessoire" className="w-full h-full object-cover rounded-xl" />
-                          ) : (
-                            <div className="text-center">
-                              <Upload className="w-6 h-6 text-slate-400 mx-auto mb-1" />
-                              <p className="text-xs text-slate-600">Photo de l'accessoire</p>
-                            </div>
-                          )}
-                        </label>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Email */}
-                  <div>
-                    <Label className="text-sm font-medium text-slate-700 mb-2 block">Email (Optionnel)</Label>
-                    <Input
-                      type="email"
-                      placeholder="votre@email.com"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                    />
-                    <p className="text-xs text-slate-500 mt-1">Recevez l'image générée par email</p>
-                  </div>
-
-                  <Separator className="my-6" />
-
-                  <Button
-                    type="submit"
-                    disabled={isGenerating}
-                    className={`w-full h-12 font-medium shadow-lg hover:shadow-xl transition-all duration-200 ${isDarkMode ? 'bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white' : 'bg-gradient-to-r from-slate-800 to-slate-600 hover:from-slate-700 hover:to-slate-500 text-white'}`}
-                  >
-                    {isGenerating ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        Génération en cours...
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-5 h-5" />
-                        Générer la Tenue
-                      </div>
-                    )}
-                  </Button>
-
-                  {isGenerating && (
-                    <div className="space-y-2">
-                      <Progress value={progress} className="w-full" />
-                      <p className="text-sm text-slate-600 text-center">
-                        Génération de votre visualisation de tenue personnalisée...
-                      </p>
                     </div>
-                  )}
-                </form>
-              </CardContent>
-            </Card>
-          </div>
 
-          {/* Results Panel */}
-          <div className="space-y-6">
-            <Card className={`border-0 shadow-xl min-h-[600px] transition-colors duration-300 ${isDarkMode ? 'bg-slate-800/50 backdrop-blur-sm' : 'bg-white/50 backdrop-blur-sm'}`}>
-              <CardHeader>
-                <CardTitle className={`flex items-center gap-2 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
-                  <Star className="w-5 h-5" />
-                  Tenue Générée
-                </CardTitle>
-                <CardDescription className={isDarkMode ? 'text-slate-400' : ''}>Votre visualisation de tenue de marié personnalisée</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {generatedImage ? (
+                    {/* Accessory Type */}
+                    <div>
+                      <Label className={`text-sm font-medium mb-2 block ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Accessoire *</Label>
+                      <Select value={formData.accessory_type} onValueChange={(value) => handleInputChange('accessory_type', value)}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Choisissez le type d'accessoire" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Bow tie">Nœud papillon</SelectItem>
+                          <SelectItem value="Tie">Cravate</SelectItem>
+                          <SelectItem value="Description texte">Description texte</SelectItem>
+                          <SelectItem value="Photo">Photo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      {formData.accessory_type === 'Description texte' && (
+                        <Textarea
+                          placeholder="Décrivez votre accessoire personnalisé..."
+                          value={formData.custom_accessory_description}
+                          onChange={(e) => handleInputChange('custom_accessory_description', e.target.value)}
+                          className={`mt-2 ${isDarkMode ? 'bg-slate-700 text-white border-white' : ''}`}
+                        />
+                      )}
+                      
+                      {formData.accessory_type === 'Photo' && (
+                        <div className="relative mt-2">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileChange(e, 'accessory')}
+                            className="hidden"
+                            id="accessory-upload"
+                          />
+                          <label
+                            htmlFor="accessory-upload"
+                            className={`flex flex-col items-center justify-center w-full h-24 border-2 border-dashed cursor-pointer transition-colors ${isDarkMode ? 'border-slate-600 bg-slate-700/50 hover:bg-slate-600/50 hover:border-slate-500' : 'border-slate-300 bg-slate-50/50 hover:bg-slate-100/50 hover:border-slate-400'}`}
+                          >
+                            {accessoryPreview ? (
+                              <img src={accessoryPreview} alt="Aperçu accessoire" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="text-center">
+                                <Upload className={`w-6 h-6 mx-auto mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`} />
+                                <p className={`text-xs ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Photo de l'accessoire</p>
+                              </div>
+                            )}
+                          </label>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Email */}
+                    <div>
+                      <Label className={`text-sm font-medium mb-2 block ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Email (Optionnel)</Label>
+                      <Input
+                        type="email"
+                        placeholder="votre@email.com"
+                        value={formData.email}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        className={isDarkMode ? 'bg-slate-700 text-white border-white' : ''}
+                      />
+                      <p className={`text-xs mt-1 ${isDarkMode ? 'text-slate-300' : 'text-slate-500'}`}>Recevez l'image générée par email</p>
+                    </div>
+
+                    <Separator className="my-6" />
+
+                    <Button
+                      type="submit"
+                      disabled={isGenerating}
+                      className={`w-full h-12 font-medium shadow-lg hover:shadow-xl transition-all duration-200 ${isDarkMode ? 'bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white' : 'bg-gradient-to-r from-slate-800 to-slate-600 hover:from-slate-700 hover:to-slate-500 text-white'}`}
+                    >
+                      {isGenerating ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          Génération en cours...
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="w-5 h-5" />
+                          Générer la Tenue
+                        </div>
+                      )}
+                    </Button>
+
+                    {isGenerating && (
+                      <div className="space-y-2">
+                        <Progress value={progress} className="w-full" />
+                        <p className={`text-sm text-center ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                          Génération de votre visualisation de tenue personnalisée...
+                        </p>
+                      </div>
+                    )}
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Results Panel */}
+            <div className="space-y-6">
+              <Card className={`border-0 shadow-xl min-h-[600px] transition-colors duration-300 ${isDarkMode ? 'bg-slate-800/50 backdrop-blur-sm' : 'bg-white/50 backdrop-blur-sm'}`}>
+                <CardHeader>
+                  <CardTitle className={`flex items-center gap-2 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
+                    <Star className="w-5 h-5" />
+                    Tenue Générée
+                  </CardTitle>
+                  <CardDescription className={isDarkMode ? 'text-slate-400' : ''}>Votre visualisation de tenue de marié personnalisée</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {generatedImage ? (
                     <div className="space-y-4">
                       <div className={`relative overflow-hidden ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
                         <img
@@ -1164,18 +1055,18 @@ L'équipe Blandin & Delloye`
                       <div className={`text-xs text-center ${isDarkMode ? 'text-white' : 'text-slate-500'}`}>
                         Généré avec IA • Filigrane par Blandin & Delloye
                       </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-96 text-slate-400">
-                    <Camera className="w-16 h-16 mb-4" />
-                    <p className="text-lg font-medium">Aucune tenue générée</p>
-                    <p className="text-sm">Téléchargez des photos et personnalisez les paramètres pour générer</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                    </div>
+                  ) : (
+                    <div className={`flex flex-col items-center justify-center h-96 ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`}>
+                      <Camera className="w-16 h-16 mb-4" />
+                      <p className={`text-lg font-medium ${isDarkMode ? 'text-white' : ''}`}>Aucune tenue générée</p>
+                      <p className={`text-sm ${isDarkMode ? 'text-white' : ''}`}>Téléchargez des photos et personnalisez les paramètres pour générer</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
         ) : (
           <AdminView />
         )}
