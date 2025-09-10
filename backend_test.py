@@ -2,8 +2,10 @@ import requests
 import sys
 import os
 import io
+import base64
 from datetime import datetime
 from PIL import Image
+import json
 
 class TailorViewAPITester:
     def __init__(self, base_url="https://outfit-gen-2.preview.emergentagent.com"):
