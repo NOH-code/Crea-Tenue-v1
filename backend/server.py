@@ -169,27 +169,32 @@ async def generate_outfit_image(
         # Build prompt
         atmosphere_desc = ATMOSPHERE_OPTIONS.get(outfit_request.atmosphere, outfit_request.atmosphere)
         
-        prompt = f"""Create a professional photo of a future groom using the attached full-length model photo. 
+        prompt = f"""Create a professional, photorealistic photo of a future groom using the attached full-length model photo. 
 
-Wedding Setting: {atmosphere_desc}
+CRITICAL REQUIREMENTS - FOLLOW EXACTLY:
+- Suit Type: {outfit_request.suit_type} (IMPORTANT: If "2-piece suit" generate ONLY jacket and trousers, NO vest/waistcoat. If "3-piece suit" include vest/waistcoat)
+- Wedding Setting: {atmosphere_desc}
 
-Groom's Outfit Details:
-- Suit: {outfit_request.suit_type}
-- Fabric: {outfit_request.fabric_description or "premium fabric"}  
-- Lapel: {outfit_request.lapel_type}
-- Pockets: {outfit_request.pocket_type}
-- Shoes: {outfit_request.custom_shoe_description or outfit_request.shoe_type}
+GROOM'S EXACT OUTFIT SPECIFICATIONS:
+- Suit: {outfit_request.suit_type} - STRICTLY FOLLOW THIS SPECIFICATION
+- Fabric: {outfit_request.fabric_description or "premium wedding fabric"}  
+- Lapel Style: {outfit_request.lapel_type}
+- Jacket Pockets: {outfit_request.pocket_type}
+- Footwear: {outfit_request.custom_shoe_description or outfit_request.shoe_type}
 - Accessory: {outfit_request.custom_accessory_description or outfit_request.accessory_type}
 
-Style Requirements:
+STYLE AND QUALITY REQUIREMENTS:
 - Portrait format in 4:3 ratio
 - High-quality, professional wedding photography style
-- Natural lighting and composition
-- Show full body of the groom in the specified setting
-- Ensure the outfit details are clearly visible and well-fitted
-- Maintain the model's pose and proportions from the original photo
+- Natural lighting appropriate for the wedding setting
+- Show full body of the groom in the specified wedding environment
+- Ensure ALL outfit details are clearly visible and perfectly fitted
+- Maintain the model's natural pose and body proportions from the original photo
+- Professional wedding photography composition and lighting
 
-Generate a stunning, photorealistic image that captures the elegance and style of this wedding moment."""
+CRITICAL: Pay special attention to generating the EXACT suit type specified: {outfit_request.suit_type}. Do not add or remove pieces from the suit specification.
+
+Generate a stunning, photorealistic wedding image that perfectly captures the elegance and style of this special moment."""
         
         # Prepare file contents
         file_contents = [ImageContent(model_base64)]
