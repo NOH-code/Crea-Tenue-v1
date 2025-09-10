@@ -220,8 +220,19 @@ L'équipe Blandin & Delloye`
         
         toast.success("Tenue générée avec succès !");
         
-        if (response.data.email_sent) {
-          toast.success("Image envoyée à votre email !");
+        // Gestion des messages d'email avec popup de confirmation
+        if (formData.email) {
+          if (response.data.email_sent) {
+            toast.success(`✅ Email envoyé avec succès à ${formData.email} !`, {
+              duration: 5000,
+              description: "Vérifiez votre boîte de réception et vos spams."
+            });
+          } else {
+            toast.error(`❌ Échec de l'envoi de l'email à ${formData.email}`, {
+              duration: 7000,
+              description: response.data.email_message || "Vérifiez l'adresse email ou contactez l'administrateur."
+            });
+          }
         }
       }
     } catch (error) {
