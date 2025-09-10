@@ -808,11 +808,38 @@ async def generate_outfit(
     fabric_description: Optional[str] = Form(None),
     custom_shoe_description: Optional[str] = Form(None),
     custom_accessory_description: Optional[str] = Form(None),
-    email: Optional[str] = Form(None)
+    email: Optional[str] = Form(None),
+    current_user: User = Depends(get_current_user)
 ):
     """Generate groom outfit visualization"""
     
     try:
+        # Check user limits for clients
+        if current_user.role == UserRole.CLIENT:
+            today = datetime.now(timezone.utc).date().isoformat()
+            
+            # Update daily counter if new day
+            if current_user.last_image_date != today:
+                await db.users.update_one(
+                    {"email": current_user.email},
+                    {"$set": {"images_used_today": 0, "last_image_date": today}}
+                )
+                current_user.images_used_today = 0
+            
+            # Check daily limit (3 per day)
+            if current_user.images_used_today >= 3:
+                raise HTTPException(
+                    status_code=429, 
+                    detail="Daily limit reached (3 images per day). Try again tomorrow."
+                )
+            
+            # Check total limit
+            if current_user.images_used_total >= current_user.images_limit_total:
+                raise HTTPException(
+                    status_code=429,
+                    detail=f"Total limit reached ({current_user.images_limit_total} images total)."
+                )
+        
         # Validate file types
         if not model_image.content_type.startswith('image/'):
             raise HTTPException(status_code=400, detail="Model file must be an image")
@@ -849,9 +876,22 @@ async def generate_outfit(
         # Generate image
         generated_image = await generate_outfit_image(model_data, fabric_data, shoe_data, accessory_data, outfit_request)
         
-        # Save to database
+        # Save to database with user info
         outfit_record = OutfitRequest(**outfit_request.dict())
+        outfit_record.user_email = current_user.email  # Add user tracking
         await db.outfit_requests.insert_one(outfit_record.dict())
+        
+        # Update user image counters (only for clients)
+        if current_user.role == UserRole.CLIENT:
+            await db.users.update_one(
+                {"email": current_user.email},
+                {
+                    "$inc": {
+                        "images_used_today": 1,
+                        "images_used_total": 1
+                    }
+                }
+            )
         
         # Save generated image
         image_filename = f"generated_{outfit_record.id}.png"
@@ -872,9 +912,13 @@ async def generate_outfit(
             "image_filename": image_filename,
             "download_url": f"/api/download/{image_filename}",
             "email_sent": email_sent,
-            "message": "Outfit generated successfully!"
+            "message": "Outfit generated successfully!",
+            "remaining_today": 3 - (current_user.images_used_today + 1) if current_user.role == UserRole.CLIENT else None,
+            "remaining_total": current_user.images_limit_total - (current_user.images_used_total + 1) if current_user.role == UserRole.CLIENT else None
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error in generate_outfit: {e}")
         raise HTTPException(status_code=500, detail=str(e))
