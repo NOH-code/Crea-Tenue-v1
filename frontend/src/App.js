@@ -916,13 +916,13 @@ function App() {
 
           {/* Results Panel */}
           <div className="space-y-6">
-            <Card className="border-0 shadow-xl bg-white/50 backdrop-blur-sm min-h-[600px]">
+            <Card className={`border-0 shadow-xl min-h-[600px] transition-colors duration-300 ${isDarkMode ? 'bg-slate-800/50 backdrop-blur-sm' : 'bg-white/50 backdrop-blur-sm'}`}>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-slate-800">
+                <CardTitle className={`flex items-center gap-2 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
                   <Star className="w-5 h-5" />
                   Tenue Générée
                 </CardTitle>
-                <CardDescription>Votre visualisation de tenue de marié personnalisée</CardDescription>
+                <CardDescription className={isDarkMode ? 'text-slate-400' : ''}>Votre visualisation de tenue de marié personnalisée</CardDescription>
               </CardHeader>
               <CardContent>
                 {generatedImage ? (
