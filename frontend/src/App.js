@@ -26,6 +26,7 @@ function App() {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [adminDialogOpen, setAdminDialogOpen] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]); // Carrousel des images générées
+  const [selectedImages, setSelectedImages] = useState([]); // Images sélectionnées pour envoi
   const [emailTemplate, setEmailTemplate] = useState({
     subject: 'Votre Visualisation de Tenue de Marié Personnalisée',
     body: `Cher Client,
