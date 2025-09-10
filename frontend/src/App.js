@@ -596,7 +596,7 @@ function App() {
               <CardContent className="space-y-6">
                 {/* Model Image Upload */}
                 <div>
-                  <Label className="text-sm font-medium text-slate-700 mb-3 block">
+                  <Label className={`text-sm font-medium mb-3 block ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
                     Photo Modèle *
                   </Label>
                   <div className="relative">
@@ -609,14 +609,14 @@ function App() {
                     />
                     <label
                       htmlFor="model-upload"
-                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-xl hover:border-slate-400 cursor-pointer transition-colors bg-slate-50/50 hover:bg-slate-100/50"
+                      className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed cursor-pointer transition-colors ${isDarkMode ? 'border-slate-600 bg-slate-700/50 hover:bg-slate-600/50 hover:border-slate-500' : 'border-slate-300 bg-slate-50/50 hover:bg-slate-100/50 hover:border-slate-400'}`}
                     >
                       {modelPreview ? (
-                        <img src={modelPreview} alt="Aperçu modèle" className="w-full h-full object-cover rounded-xl" />
+                        <img src={modelPreview} alt="Aperçu modèle" className="w-full h-full object-cover" />
                       ) : (
                         <div className="text-center">
-                          <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                          <p className="text-sm text-slate-600">Cliquez pour télécharger la photo du modèle</p>
+                          <Upload className={`w-8 h-8 mx-auto mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`} />
+                          <p className={`text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>Cliquez pour télécharger la photo du modèle</p>
                         </div>
                       )}
                     </label>
