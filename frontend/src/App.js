@@ -428,6 +428,26 @@ L'équipe Blandin & Delloye`
 
   const AdminView = () => (
     <div className="space-y-6">
+      {/* Admin Tabs */}
+      <div className="flex space-x-4 border-b border-slate-300">
+        <Button
+          variant={adminTab === 'dashboard' ? 'default' : 'ghost'}
+          onClick={() => setAdminTab('dashboard')}
+          className={isDarkMode ? 'text-white' : ''}
+        >
+          📊 Dashboard
+        </Button>
+        <Button
+          variant={adminTab === 'emailing' ? 'default' : 'ghost'}
+          onClick={() => setAdminTab('emailing')}
+          className={isDarkMode ? 'text-white' : ''}
+        >
+          📧 Emailing
+        </Button>
+      </div>
+
+      {adminTab === 'dashboard' ? (
+        <>
       {/* Admin Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
