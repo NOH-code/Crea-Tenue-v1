@@ -636,7 +636,10 @@ L'équipe Blandin & Delloye`
         {/* Mobile Logo Banner */}
         <div className={`md:hidden mobile-logo-banner transition-colors duration-300 ${isDarkMode ? 'bg-gradient-to-r from-slate-800 to-slate-700' : ''}`}>
           <img 
-            src="https://customer-assets.emergentagent.com/job_tailorview/artifacts/sgrg1l59_logo%20noir%20sans%20fond.png" 
+            src={isDarkMode 
+              ? "https://customer-assets.emergentagent.com/job_tailorview/artifacts/zbc9zzks_logo%20blanc%20sans%20fond.png"
+              : "https://customer-assets.emergentagent.com/job_tailorview/artifacts/sgrg1l59_logo%20noir%20sans%20fond.png"
+            }
             alt="Logo" 
             className="h-32 object-contain"
           />
@@ -648,7 +651,10 @@ L'équipe Blandin & Delloye`
             {/* Desktop Logo - 100% plus grand */}
             <div className="hidden md:flex items-center">
               <img 
-                src="https://customer-assets.emergentagent.com/job_tailorview/artifacts/sgrg1l59_logo%20noir%20sans%20fond.png" 
+                src={isDarkMode 
+                  ? "https://customer-assets.emergentagent.com/job_tailorview/artifacts/zbc9zzks_logo%20blanc%20sans%20fond.png"
+                  : "https://customer-assets.emergentagent.com/job_tailorview/artifacts/sgrg1l59_logo%20noir%20sans%20fond.png"
+                }
                 alt="Logo" 
                 className="w-48 h-48 lg:w-64 lg:h-64 object-contain"
               />
