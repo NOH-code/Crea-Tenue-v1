@@ -504,9 +504,9 @@ async def send_invitation_email(email: str, prenom: str, verification_token: str
         return False
 
 async def send_email_with_image(email: str, image_data: bytes, outfit_details: dict):
-    """Send generated image via email"""
+    """Send generated image via email - with fallback to email queue"""
     try:
-        # Email configuration - Infomaniak SMTP settings
+        # Email configuration - Try Gmail as fallback
         smtp_server = os.getenv('SMTP_SERVER', 'mail.infomaniak.com')
         smtp_port = int(os.getenv('SMTP_PORT', '587'))
         sender_email = os.getenv('SENDER_EMAIL')
@@ -516,7 +516,6 @@ async def send_email_with_image(email: str, image_data: bytes, outfit_details: d
         
         if not sender_email or not sender_password:
             logger.warning("Email credentials not configured in environment variables")
-            logger.info("To enable email delivery, add SENDER_EMAIL and SENDER_PASSWORD to .env file")
             return False
         
         # Create message
@@ -556,42 +555,83 @@ L'équipe Blandin & Delloye"""
         )
         msg.attach(part)
         
-        # Send email with better error handling and debugging
-        try:
-            logger.info(f"Connecting to SMTP server {smtp_server}:{smtp_port}")
-            with smtplib.SMTP(smtp_server, smtp_port) as server:
-                logger.info("Starting TLS...")
-                server.starttls()
-                logger.info(f"Logging in with user: {sender_email}")
-                server.login(sender_email, sender_password)
-                logger.info("Sending message...")
-                server.send_message(msg)
-            
-            logger.info(f"Email sent successfully to {email}")
-            return True
-            
-        except smtplib.SMTPAuthenticationError as auth_error:
-            logger.error(f"SMTP Authentication failed: {auth_error}")
-            logger.error(f"Check credentials for {sender_email} on {smtp_server}")
-            
-            # TEMPORARY: Log email request for manual processing
-            logger.info(f"MANUAL EMAIL REQUEST: {email} - Image generated at {datetime.now()}")
-            
-            # Return False but with a user-friendly message logged
-            return False
-        except smtplib.SMTPRecipientsRefused as recipient_error:
-            logger.error(f"Recipient email rejected: {recipient_error}")
-            return False
-        except smtplib.SMTPServerDisconnected as disconnect_error:
-            logger.error(f"SMTP server disconnected: {disconnect_error}")
-            return False
-        except Exception as smtp_error:
-            logger.error(f"SMTP error: {smtp_error}")
-            return False
+        # Try different SMTP configurations
+        smtp_configs = [
+            # Original Infomaniak config
+            {'server': smtp_server, 'port': smtp_port, 'email': sender_email, 'password': sender_password},
+            # Gmail fallback (if different credentials exist)
+            {'server': 'smtp.gmail.com', 'port': 587, 'email': sender_email, 'password': sender_password},
+            # Alternative Infomaniak config
+            {'server': 'mail.infomaniak.com', 'port': 465, 'email': sender_email, 'password': sender_password}
+        ]
+        
+        for config in smtp_configs:
+            try:
+                logger.info(f"Trying SMTP: {config['server']}:{config['port']}")
+                
+                if config['port'] == 465:
+                    # Use SSL for port 465
+                    with smtplib.SMTP_SSL(config['server'], config['port']) as server:
+                        server.login(config['email'], config['password'])
+                        server.send_message(msg)
+                else:
+                    # Use STARTTLS for port 587
+                    with smtplib.SMTP(config['server'], config['port']) as server:
+                        server.starttls()
+                        server.login(config['email'], config['password'])
+                        server.send_message(msg)
+                
+                logger.info(f"Email sent successfully to {email} via {config['server']}")
+                return True
+                
+            except smtplib.SMTPAuthenticationError as auth_error:
+                logger.warning(f"Auth failed for {config['server']}: {auth_error}")
+                continue
+            except Exception as smtp_error:
+                logger.warning(f"SMTP error for {config['server']}: {smtp_error}")
+                continue
+        
+        # If all SMTP configs fail, save to email queue for manual processing
+        await save_email_to_queue(email, outfit_details, image_data)
+        logger.info(f"Email queued for manual processing: {email}")
+        return False
         
     except Exception as e:
-        logger.error(f"Error preparing email: {e}")
+        logger.error(f"Error in send_email_with_image: {e}")
         return False
+
+async def save_email_to_queue(email: str, outfit_details: dict, image_data: bytes):
+    """Save email request to database for manual processing"""
+    try:
+        email_queue_record = {
+            "id": str(uuid.uuid4()),
+            "email": email,
+            "outfit_details": outfit_details,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "status": "pending",
+            "image_saved": False
+        }
+        
+        # Save image to queue folder
+        queue_folder = Path("/app/email_queue")
+        queue_folder.mkdir(exist_ok=True)
+        
+        image_filename = f"queued_{email_queue_record['id']}.png"
+        image_path = queue_folder / image_filename
+        
+        with open(image_path, 'wb') as f:
+            f.write(image_data)
+        
+        email_queue_record["image_path"] = str(image_path)
+        email_queue_record["image_saved"] = True
+        
+        # Save to database
+        await db.email_queue.insert_one(email_queue_record)
+        
+        logger.info(f"Email queued successfully: {email} -> {image_filename}")
+        
+    except Exception as e:
+        logger.error(f"Error saving email to queue: {e}")
 
 # API Routes - Authentication
 @api_router.post("/auth/register")
