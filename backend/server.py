@@ -219,9 +219,9 @@ async def apply_watermark(image_data: bytes) -> bytes:
         if watermark_path.exists():
             watermark = Image.open(watermark_path)
             
-            # Calculate watermark size (10% of image width)
+            # Calculate watermark size (80% of image width - 800% larger than before)
             img_width, img_height = image.size
-            watermark_width = int(img_width * 0.1)
+            watermark_width = int(img_width * 0.8)  # Changed from 0.1 to 0.8 (800% increase)
             watermark_height = int(watermark.size[1] * (watermark_width / watermark.size[0]))
             
             # Resize watermark
@@ -231,7 +231,7 @@ async def apply_watermark(image_data: bytes) -> bytes:
             x = (img_width - watermark_width) // 2
             y = img_height - watermark_height - 20
             
-            # Apply watermark
+            # Apply watermark (no text added, only logo)
             if watermark.mode == 'RGBA':
                 image.paste(watermark, (x, y), watermark)
             else:
