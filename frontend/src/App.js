@@ -47,7 +47,10 @@ function App() {
 
   useEffect(() => {
     fetchOptions();
-  }, []);
+    if (currentView === 'admin') {
+      fetchAdminData();
+    }
+  }, [currentView]);
 
   const fetchOptions = async () => {
     try {
@@ -56,6 +59,36 @@ function App() {
     } catch (error) {
       console.error("Error fetching options:", error);
       toast.error("Échec du chargement des options");
+    }
+  };
+
+  const fetchAdminData = async () => {
+    setIsLoadingAdmin(true);
+    try {
+      const [requestsResponse, statsResponse] = await Promise.all([
+        axios.get(`${API}/admin/requests`),
+        axios.get(`${API}/admin/stats`)
+      ]);
+      setAdminRequests(requestsResponse.data);
+      setAdminStats(statsResponse.data);
+    } catch (error) {
+      console.error("Error fetching admin data:", error);
+      toast.error("Échec du chargement des données admin");
+    } finally {
+      setIsLoadingAdmin(false);
+    }
+  };
+
+  const deleteRequest = async (requestId) => {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer cette demande ?")) return;
+    
+    try {
+      await axios.delete(`${API}/admin/request/${requestId}`);
+      toast.success("Demande supprimée avec succès");
+      fetchAdminData(); // Refresh data
+    } catch (error) {
+      console.error("Error deleting request:", error);
+      toast.error("Échec de la suppression");
     }
   };
 
