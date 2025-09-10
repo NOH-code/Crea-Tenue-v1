@@ -68,12 +68,44 @@ L'équipe Blandin & Delloye`
   const [adminStats, setAdminStats] = useState({});
   const [isLoadingAdmin, setIsLoadingAdmin] = useState(false);
 
+  // Auth state management
+  const [allUsers, setAllUsers] = useState([]);
+
   useEffect(() => {
+    // Check for existing auth
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    if (token && user) {
+      setIsAuthenticated(true);
+      setCurrentUser(JSON.parse(user));
+      setupAxiosAuth(token);
+    }
+    
     fetchOptions();
-    if (currentView === 'admin') {
+    if (currentView === 'admin' && isAuthenticated) {
       fetchAdminData();
     }
-  }, [currentView]);
+  }, [currentView, isAuthenticated]);
+
+  const setupAxiosAuth = (token) => {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  };
+
+  const handleLogin = (user, token) => {
+    setIsAuthenticated(true);
+    setCurrentUser(user);
+    setupAxiosAuth(token);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    delete axios.defaults.headers.common['Authorization'];
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    setCurrentView('generator');
+  };
 
   const fetchOptions = async () => {
     try {
@@ -94,6 +126,12 @@ L'équipe Blandin & Delloye`
       ]);
       setAdminRequests(requestsResponse.data);
       setAdminStats(statsResponse.data);
+      
+      // Fetch users if admin
+      if (currentUser?.role === 'admin') {
+        const usersResponse = await axios.get(`${API}/admin/users`);
+        setAllUsers(usersResponse.data);
+      }
     } catch (error) {
       console.error("Error fetching admin data:", error);
       toast.error("Échec du chargement des données admin");
