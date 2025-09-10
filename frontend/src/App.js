@@ -717,6 +717,9 @@ function App() {
             </Card>
           </div>
         </div>
+        ) : (
+          <AdminView />
+        )}
       </main>
     </div>
   );
