@@ -347,7 +347,7 @@ function App() {
       {/* Password Change Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className={`flex items-center gap-2 ${isDarkMode ? 'text-slate-100' : ''}`}>
             <Settings className="w-5 h-5" />
             Paramètres Administration
           </CardTitle>
