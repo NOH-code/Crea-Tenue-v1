@@ -390,6 +390,7 @@ function App() {
       </header>
 
       <main className="container mx-auto px-6 py-8 max-w-7xl">
+        {currentView === 'generator' ? (
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Configuration Panel */}
           <div className="space-y-6">
