@@ -10,7 +10,7 @@ import { Textarea } from "./components/ui/textarea";
 import { Badge } from "./components/ui/badge";
 import { Separator } from "./components/ui/separator";
 import { Progress } from "./components/ui/progress";
-import { toast } from "sonner";
+import { toast, Toaster } from "sonner";
 import axios from "axios";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
