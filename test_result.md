@@ -188,6 +188,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "CONFIRMED: Enhanced email functionality working perfectly. Detailed error handling provides clear messages: 'Échec de l'envoi de l'email à [email]. Vérifiez l'adresse ou contactez l'administrateur.' SMTP authentication fails as expected (credentials may need updating), but error handling and logging work flawlessly. API returns proper email_message field with detailed error information."
+      - working: true
+        agent: "testing"
+        comment: "IMPROVED EMAIL SYSTEM FULLY TESTED AND WORKING: ✅ Multiple SMTP fallback configurations (Infomaniak 587/465, Gmail) ✅ Email queue system saves failed emails to database (email_queue collection) ✅ Images saved to /app/email_queue folder (4 queued images found) ✅ Admin endpoint GET /api/admin/email-queue working after ObjectId serialization fix ✅ Users receive appropriate feedback messages for email status ✅ Email blocking issue RESOLVED - failed emails are queued for manual processing within 24h. All 4 priority email improvements working perfectly."
 
 frontend:
   - task: "Admin code 1149 access dialog"
