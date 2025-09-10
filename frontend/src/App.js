@@ -621,6 +621,10 @@ L'équipe Blandin & Delloye`
           )}
         </CardContent>
       </Card>
+      </>
+      ) : (
+        <EmailingTab />
+      )}
     </div>
   );
 
