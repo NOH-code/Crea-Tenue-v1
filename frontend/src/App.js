@@ -704,8 +704,59 @@ L'équipe Blandin & Delloye`
       </header>
 
       <main className="container mx-auto px-6 py-8 max-w-7xl">
-        {currentView === 'generator' ? (
-          <div className="grid lg:grid-cols-2 gap-8">
+        {/* Auth Dialog */}
+        <AuthDialog 
+          isOpen={showAuthDialog} 
+          onClose={() => setShowAuthDialog(false)}
+          onLogin={handleLogin}
+          isDarkMode={isDarkMode}
+        />
+
+        {!isAuthenticated ? (
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <Card className={`max-w-md mx-auto ${isDarkMode ? 'bg-slate-800 text-white border-white' : ''}`}>
+              <CardHeader className="text-center">
+                <CardTitle className={`text-2xl ${isDarkMode ? 'text-white' : ''}`}>
+                  Bienvenue sur TailorView
+                </CardTitle>
+                <CardDescription className={isDarkMode ? 'text-white' : ''}>
+                  Connectez-vous pour accéder à nos services de visualisation de tenues de marié
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button 
+                  onClick={() => setShowAuthDialog(true)} 
+                  className="w-full"
+                >
+                  Se connecter / Créer un compte
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <>
+            {/* User Profile Bar */}
+            <UserProfile 
+              user={currentUser} 
+              onLogout={handleLogout} 
+              isDarkMode={isDarkMode}
+            />
+
+            {currentView === 'generator' ? (
+              <div className="text-center py-8">
+                <h2 className={`text-xl ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+                  Générateur de tenues - En cours de développement
+                </h2>
+                <p className={isDarkMode ? 'text-white' : 'text-slate-600'}>
+                  Fonctionnalité disponible prochainement
+                </p>
+              </div>
+            ) : (
+              <AdminView />
+            )}
+          </>
+        )}
+      </main>
             {/* Configuration Panel */}
             <div className="space-y-6">
             <Card className={`border-0 shadow-xl transition-colors duration-300 ${isDarkMode ? 'bg-slate-800/50 backdrop-blur-sm' : 'bg-white/50 backdrop-blur-sm'}`}>
