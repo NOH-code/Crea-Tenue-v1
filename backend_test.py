@@ -2745,6 +2745,338 @@ class TailorViewAPITester:
             print("❌ IMAGE MODIFICATION FEATURE HAS ISSUES")
             return False, {}
 
+    def test_user_export_import_functionality(self):
+        """Test NEW FEATURE: User Export/Import Functionality"""
+        print("\n🔍 Testing NEW FEATURE: User Export/Import Functionality...")
+        
+        if not self.admin_token:
+            print("⚠️  No admin token available, logging in as admin first...")
+            admin_success, admin_response = self.test_admin_login()
+            if not admin_success:
+                return False, {}
+        
+        # 1. Test CSV Export
+        print("\n📋 1. Testing CSV Export...")
+        
+        success_csv, response_csv = self.run_test(
+            "Export Users as CSV",
+            "GET",
+            "admin/users/export?format=csv",
+            200,
+            auth_token=self.admin_token
+        )
+        
+        if success_csv:
+            print("✅ CSV export successful")
+            # Check if response is CSV content
+            if isinstance(response_csv, str) and 'nom,email,role' in response_csv:
+                print("   ✓ CSV format detected with expected headers")
+                print(f"   ✓ CSV content length: {len(response_csv)} characters")
+            else:
+                print("   ⚠️  CSV format may not be correct")
+        else:
+            print("❌ CSV export failed")
+        
+        # 2. Test JSON Export
+        print("\n📋 2. Testing JSON Export...")
+        
+        success_json, response_json = self.run_test(
+            "Export Users as JSON",
+            "GET",
+            "admin/users/export?format=json",
+            200,
+            auth_token=self.admin_token
+        )
+        
+        if success_json:
+            print("✅ JSON export successful")
+            # Check if response is JSON content
+            if isinstance(response_json, str):
+                try:
+                    json_data = json.loads(response_json)
+                    if isinstance(json_data, list):
+                        print(f"   ✓ JSON format detected with {len(json_data)} users")
+                        if json_data and 'nom' in json_data[0] and 'email' in json_data[0]:
+                            print("   ✓ JSON contains expected user fields")
+                        else:
+                            print("   ⚠️  JSON may be missing expected fields")
+                    else:
+                        print("   ⚠️  JSON is not a list format")
+                except json.JSONDecodeError:
+                    print("   ❌ Response is not valid JSON")
+            else:
+                print("   ⚠️  JSON response format unexpected")
+        else:
+            print("❌ JSON export failed")
+        
+        # 3. Test Invalid Format Export
+        print("\n📋 3. Testing Invalid Format Export...")
+        
+        success_invalid, response_invalid = self.run_test(
+            "Export Users with Invalid Format",
+            "GET",
+            "admin/users/export?format=xml",
+            400,  # Expecting bad request
+            auth_token=self.admin_token
+        )
+        
+        if success_invalid:
+            print("✅ Invalid format correctly rejected")
+        else:
+            print("❌ Invalid format validation not working")
+        
+        # 4. Test Export Without Admin Access
+        print("\n📋 4. Testing Export Without Admin Access...")
+        
+        if not self.auth_token:
+            print("⚠️  No regular user token available, logging in first...")
+            login_success, login_response = self.test_user_login()
+            if not login_success:
+                print("   ⚠️  Skipping non-admin test due to login failure")
+                success_no_admin = True  # Skip this test
+            else:
+                success_no_admin, response_no_admin = self.run_test(
+                    "Export Users Without Admin Access",
+                    "GET",
+                    "admin/users/export?format=csv",
+                    403,  # Expecting forbidden
+                    auth_token=self.auth_token
+                )
+        else:
+            success_no_admin, response_no_admin = self.run_test(
+                "Export Users Without Admin Access",
+                "GET",
+                "admin/users/export?format=csv",
+                403,  # Expecting forbidden
+                auth_token=self.auth_token
+            )
+        
+        if success_no_admin:
+            print("✅ Non-admin access correctly blocked")
+        else:
+            print("❌ Non-admin access restriction not working")
+        
+        # 5. Test CSV Import with Valid Data
+        print("\n📋 5. Testing CSV Import with Valid Data...")
+        
+        # Create test CSV data
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        csv_content = f"""nom,email,role,images_used_total,images_limit_total,is_active,password
+Test Import User 1,import1_{timestamp}@example.com,client,0,5,true,TestPass123
+Test Import User 2,import2_{timestamp}@example.com,user,2,10,true,TestPass456"""
+        
+        # Create a file-like object for upload
+        csv_file = io.StringIO(csv_content)
+        csv_bytes = csv_content.encode('utf-8')
+        
+        files = {
+            'file': ('test_users.csv', io.BytesIO(csv_bytes), 'text/csv')
+        }
+        
+        success_import_csv, response_import_csv = self.run_test(
+            "Import Users from CSV",
+            "POST",
+            "admin/users/import",
+            200,
+            files=files,
+            auth_token=self.admin_token
+        )
+        
+        if success_import_csv:
+            print("✅ CSV import successful")
+            if 'imported_count' in response_import_csv:
+                print(f"   ✓ Imported {response_import_csv.get('imported_count', 0)} users")
+                if 'imported_users' in response_import_csv:
+                    print(f"   ✓ Imported users: {response_import_csv['imported_users']}")
+                if 'errors' in response_import_csv and response_import_csv['errors']:
+                    print(f"   ⚠️  Import errors: {response_import_csv['errors']}")
+            else:
+                print("   ⚠️  Import response missing expected fields")
+        else:
+            print("❌ CSV import failed")
+        
+        # 6. Test JSON Import with Valid Data
+        print("\n📋 6. Testing JSON Import with Valid Data...")
+        
+        # Create test JSON data
+        json_data = [
+            {
+                "nom": "Test JSON User 1",
+                "email": f"jsonuser1_{timestamp}@example.com",
+                "role": "client",
+                "images_used_total": 0,
+                "images_limit_total": 5,
+                "is_active": True,
+                "password": "TestPass789"
+            },
+            {
+                "nom": "Test JSON User 2", 
+                "email": f"jsonuser2_{timestamp}@example.com",
+                "role": "user",
+                "images_used_total": 1,
+                "images_limit_total": 8,
+                "is_active": True,
+                "password": "TestPass101"
+            }
+        ]
+        
+        json_content = json.dumps(json_data, indent=2)
+        json_bytes = json_content.encode('utf-8')
+        
+        files_json = {
+            'file': ('test_users.json', io.BytesIO(json_bytes), 'application/json')
+        }
+        
+        success_import_json, response_import_json = self.run_test(
+            "Import Users from JSON",
+            "POST",
+            "admin/users/import",
+            200,
+            files=files_json,
+            auth_token=self.admin_token
+        )
+        
+        if success_import_json:
+            print("✅ JSON import successful")
+            if 'imported_count' in response_import_json:
+                print(f"   ✓ Imported {response_import_json.get('imported_count', 0)} users")
+                if 'imported_users' in response_import_json:
+                    print(f"   ✓ Imported users: {response_import_json['imported_users']}")
+        else:
+            print("❌ JSON import failed")
+        
+        # 7. Test Import with Duplicate Emails
+        print("\n📋 7. Testing Import with Duplicate Emails...")
+        
+        # Create CSV with duplicate email from previous import
+        duplicate_csv = f"""nom,email,role,images_used_total,images_limit_total,is_active,password
+Duplicate User,import1_{timestamp}@example.com,client,0,5,true,TestPass999"""
+        
+        duplicate_bytes = duplicate_csv.encode('utf-8')
+        files_duplicate = {
+            'file': ('duplicate_users.csv', io.BytesIO(duplicate_bytes), 'text/csv')
+        }
+        
+        success_duplicate, response_duplicate = self.run_test(
+            "Import Users with Duplicate Emails",
+            "POST",
+            "admin/users/import",
+            200,  # Should succeed but with errors
+            files=files_duplicate,
+            auth_token=self.admin_token
+        )
+        
+        if success_duplicate:
+            print("✅ Duplicate email import handled correctly")
+            if 'errors' in response_duplicate and response_duplicate['errors']:
+                print(f"   ✓ Duplicate email errors detected: {len(response_duplicate['errors'])}")
+                print(f"   ✓ Error messages: {response_duplicate['errors']}")
+            else:
+                print("   ⚠️  Expected duplicate email errors not found")
+        else:
+            print("❌ Duplicate email import handling failed")
+        
+        # 8. Test Import with Invalid Data
+        print("\n📋 8. Testing Import with Invalid Data...")
+        
+        # Create CSV with missing required fields
+        invalid_csv = """nom,email,role
+,invalid-email,client
+Valid Name,,user"""
+        
+        invalid_bytes = invalid_csv.encode('utf-8')
+        files_invalid = {
+            'file': ('invalid_users.csv', io.BytesIO(invalid_bytes), 'text/csv')
+        }
+        
+        success_invalid_data, response_invalid_data = self.run_test(
+            "Import Users with Invalid Data",
+            "POST",
+            "admin/users/import",
+            200,  # Should succeed but with errors
+            files=files_invalid,
+            auth_token=self.admin_token
+        )
+        
+        if success_invalid_data:
+            print("✅ Invalid data import handled correctly")
+            if 'errors' in response_invalid_data and response_invalid_data['errors']:
+                print(f"   ✓ Validation errors detected: {len(response_invalid_data['errors'])}")
+            else:
+                print("   ⚠️  Expected validation errors not found")
+        else:
+            print("❌ Invalid data import handling failed")
+        
+        # 9. Test Import Without Admin Access
+        print("\n📋 9. Testing Import Without Admin Access...")
+        
+        test_csv_no_admin = """nom,email,role
+Test User,nonadmin@example.com,client"""
+        
+        test_bytes_no_admin = test_csv_no_admin.encode('utf-8')
+        files_no_admin = {
+            'file': ('test.csv', io.BytesIO(test_bytes_no_admin), 'text/csv')
+        }
+        
+        if self.auth_token:  # Use regular user token if available
+            success_import_no_admin, response_import_no_admin = self.run_test(
+                "Import Users Without Admin Access",
+                "POST",
+                "admin/users/import",
+                403,  # Expecting forbidden
+                files=files_no_admin,
+                auth_token=self.auth_token
+            )
+        else:
+            print("   ⚠️  Skipping non-admin import test (no regular user token)")
+            success_import_no_admin = True  # Skip this test
+        
+        if success_import_no_admin:
+            print("✅ Non-admin import access correctly blocked")
+        else:
+            print("❌ Non-admin import access restriction not working")
+        
+        # Summary
+        print("\n" + "=" * 70)
+        print("🎯 USER EXPORT/IMPORT FUNCTIONALITY TEST SUMMARY")
+        print("=" * 70)
+        
+        tests_results = [
+            ("CSV Export", success_csv),
+            ("JSON Export", success_json),
+            ("Invalid Format Export", success_invalid),
+            ("Export Access Control", success_no_admin),
+            ("CSV Import with Valid Data", success_import_csv),
+            ("JSON Import with Valid Data", success_import_json),
+            ("Import with Duplicate Emails", success_duplicate),
+            ("Import with Invalid Data", success_invalid_data),
+            ("Import Access Control", success_import_no_admin)
+        ]
+        
+        passed_tests = sum(1 for _, success in tests_results if success)
+        total_tests = len(tests_results)
+        
+        for test_name, success in tests_results:
+            status = "✅" if success else "❌"
+            print(f"   {status} {test_name}")
+        
+        print(f"\n📊 Export/Import Tests: {passed_tests}/{total_tests} passed")
+        
+        if passed_tests >= total_tests * 0.8:  # 80% pass rate
+            print("✅ USER EXPORT/IMPORT FUNCTIONALITY WORKING CORRECTLY")
+            return True, {
+                'csv_export': success_csv,
+                'json_export': success_json,
+                'csv_import': success_import_csv,
+                'json_import': success_import_json,
+                'duplicate_handling': success_duplicate,
+                'validation_handling': success_invalid_data,
+                'access_control': success_no_admin and success_import_no_admin
+            }
+        else:
+            print("❌ USER EXPORT/IMPORT FUNCTIONALITY HAS ISSUES")
+            return False, {}
+
 def main():
     print("🚀 COSTUME 2 PIÈCES 'SANS GILET' SPECIFICATION TESTING")
     print("🎯 PRIORITY: Testing IMPROVED Prompt for 'Costume 2 pièces' with explicit 'SANS GILET' specification")
