@@ -295,12 +295,35 @@ async def generate_outfit_image(
             "Wide double-breasted peak lapel": "wide peak lapel for double-breasted jacket, very formal"
         }
         
-        # Suit composition details
+        # Suit composition details - FIXED: Use French terms for detection
         suit_composition = ""
-        if "2-piece" in outfit_request.suit_type.lower():
+        suit_composition_detailed = ""
+        
+        if "2 pièces" in outfit_request.suit_type.lower():
             suit_composition = "EXACTLY 2 pieces: jacket and trousers ONLY. NO vest, NO waistcoat, NO third piece visible."
-        elif "3-piece" in outfit_request.suit_type.lower():
+            suit_composition_detailed = """
+CRITICAL 2-PIECE SUIT REQUIREMENTS:
+- Show ONLY jacket and trousers
+- NO vest visible at all
+- NO waistcoat under the jacket
+- NO third piece of clothing
+- The jacket should be worn directly over a shirt/dress shirt
+- ABSOLUTELY NO vest or waistcoat layer between shirt and jacket"""
+            
+        elif "3 pièces" in outfit_request.suit_type.lower():
             suit_composition = "EXACTLY 3 pieces: jacket, trousers, AND waistcoat/vest. The vest MUST be visible under the jacket."
+            suit_composition_detailed = """
+CRITICAL 3-PIECE SUIT REQUIREMENTS:
+- Show ALL 3 pieces: jacket, trousers, AND vest/waistcoat
+- The vest/waistcoat MUST be clearly visible under the open jacket
+- The vest should be a different shade or complementary color to the jacket
+- The vest should cover the shirt front and be visible in the jacket opening
+- ALL THREE pieces must be clearly distinguishable
+- The vest is MANDATORY and MUST be visible"""
+        else:
+            # Fallback for any other suit type
+            suit_composition = "Standard suit composition as appropriate for the outfit type specified."
+            suit_composition_detailed = "Standard suit styling with appropriate number of pieces."
         
         pocket_spec = pocket_details.get(outfit_request.pocket_type, outfit_request.pocket_type)
         lapel_spec = lapel_details.get(outfit_request.lapel_type, outfit_request.lapel_type)
