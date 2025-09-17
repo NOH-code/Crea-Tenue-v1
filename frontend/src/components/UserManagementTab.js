@@ -263,6 +263,55 @@ const UserManagementTab = ({ isDarkMode, accessToken }) => {
         </div>
       </div>
 
+      {/* Import Section */}
+      <Card className={isDarkMode ? 'bg-slate-800 border-slate-700' : ''}>
+        <CardHeader>
+          <CardTitle className={isDarkMode ? 'text-white' : ''}>
+            <FileUp className="w-5 h-5 inline mr-2" />
+            Importer des Utilisateurs
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <Label className={isDarkMode ? 'text-white' : ''}>
+                Fichier CSV ou JSON
+              </Label>
+              <Input
+                type="file"
+                accept=".csv,.json"
+                onChange={(e) => setImportFile(e.target.files[0])}
+                className={isDarkMode ? 'bg-slate-700 text-white border-slate-600' : ''}
+              />
+              <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                Format CSV : nom, email, role, images_used_total, images_limit_total, password, is_active
+              </p>
+            </div>
+            
+            <div className="flex space-x-2">
+              <Button
+                onClick={importUsers}
+                disabled={isImporting || !importFile}
+                className={isDarkMode ? 'bg-green-700 hover:bg-green-600' : ''}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {isImporting ? 'Import en cours...' : 'Importer'}
+              </Button>
+              
+              {importFile && (
+                <Button
+                  variant="outline"
+                  onClick={() => setImportFile(null)}
+                  className={isDarkMode ? 'border-slate-600 text-white hover:bg-slate-700' : ''}
+                >
+                  Annuler
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card className={isDarkMode ? 'bg-slate-800 border-slate-700' : ''}>
         <CardHeader>
           <CardTitle className={isDarkMode ? 'text-white' : ''}>
