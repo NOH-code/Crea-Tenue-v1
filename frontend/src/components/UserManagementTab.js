@@ -141,6 +141,76 @@ const UserManagementTab = ({ isDarkMode, accessToken }) => {
     });
   };
 
+  // Export users function
+  const exportUsers = async (format) => {
+    setIsExporting(true);
+    try {
+      const response = await axios.get(`${API}/admin/users/export?format=${format}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        responseType: 'blob'
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `users_export.${format}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`Export ${format.toUpperCase()} réussi !`);
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error("Erreur lors de l'export des utilisateurs");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Import users function
+  const importUsers = async () => {
+    if (!importFile) {
+      toast.error("Veuillez sélectionner un fichier à importer");
+      return;
+    }
+
+    setIsImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', importFile);
+
+      const response = await axios.post(`${API}/admin/users/import`, formData, {
+        headers: { 
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (response.data.success) {
+        toast.success(`${response.data.imported_count} utilisateur(s) importé(s) avec succès !`);
+        
+        if (response.data.errors && response.data.errors.length > 0) {
+          console.warn('Import warnings:', response.data.errors);
+          toast.warning(`${response.data.errors.length} erreur(s) pendant l'import. Vérifiez la console.`);
+        }
+        
+        // Refresh users list
+        fetchUsers();
+        setImportFile(null);
+      } else {
+        toast.error("Erreur lors de l'import");
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      const errorMsg = error.response?.data?.detail || "Erreur lors de l'import des utilisateurs";
+      toast.error(errorMsg);
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
