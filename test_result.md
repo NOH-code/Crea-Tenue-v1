@@ -320,9 +320,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Admin code 1149 access dialog"
-  stuck_tasks:
-    - "Admin code 1149 access dialog"
+    - "User email tracking fix in admin dashboard"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
