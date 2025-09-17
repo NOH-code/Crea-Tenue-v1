@@ -674,7 +674,7 @@ L'équipe Blandin & Delloye`
                       value={formData.email}
                       onChange={(e) => handleFormChange('email', e.target.value)}
                       placeholder="votre.email@exemple.com"
-                      className={isDarkMode ? 'bg-slate-800 text-white border-green-800' : ''}
+                      className={isDarkMode ? 'bg-slate-800 text-white border-green-800 placeholder:text-green-400' : 'placeholder:text-gray-500'}
                     />
                   </div>
 
