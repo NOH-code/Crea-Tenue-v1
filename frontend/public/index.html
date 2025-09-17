@@ -6,10 +6,27 @@
         <meta name="theme-color" content="#000000" />
         <meta name="description" content="A product of emergent.sh" />
         
-        <!-- Google Fonts - Bodoni Moda -->
+        <!-- Google Fonts - Bodoni Moda with more variants -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700;0,6..96,800;1,6..96,400;1,6..96,500;1,6..96,600&display=swap" rel="stylesheet">
+        
+        <!-- Inline test to ensure font loading -->
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700;0,6..96,800;1,6..96,400;1,6..96,500;1,6..96,600&display=swap');
+            
+            /* Force Bodoni Moda everywhere */
+            * {
+                font-family: 'Bodoni Moda', Georgia, serif !important;
+                font-optical-sizing: auto !important;
+                font-weight: 400 !important;
+                font-style: normal !important;
+            }
+            
+            body, html {
+                font-family: 'Bodoni Moda', Georgia, serif !important;
+            }
+        </style>
         
         <!--
       manifest.json provides metadata used when your web app is installed on a
