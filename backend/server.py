@@ -1332,10 +1332,17 @@ async def modify_outfit_image(
         # Convert original image to base64
         original_base64 = base64.b64encode(original_image_data).decode('utf-8')
         
-        # Build modification prompt
+        # Build modification prompt with improved suit composition logic
         atmosphere_desc = ATMOSPHERE_OPTIONS.get(original_request.atmosphere, original_request.atmosphere)
         person_term = "mariée" if original_request.gender == "femme" else "marié"
         gender_desc = "femme" if original_request.gender == "femme" else "homme"
+        
+        # Add suit composition details for modification
+        suit_composition_note = ""
+        if "2 pièces" in original_request.suit_type.lower():
+            suit_composition_note = "IMPORTANT: This is a 2-piece suit (jacket + trousers ONLY, NO vest visible)"
+        elif "3 pièces" in original_request.suit_type.lower():
+            suit_composition_note = "IMPORTANT: This is a 3-piece suit (jacket + trousers + vest/waistcoat, vest MUST be visible)"
         
         prompt = f"""Based on the attached wedding photo, create a modified version with the following specific changes:
 
@@ -1346,6 +1353,7 @@ MAINTAIN THESE ORIGINAL ELEMENTS:
 - Overall style and composition
 - Wedding setting: {atmosphere_desc}
 - Basic suit structure: {original_request.suit_type}
+- {suit_composition_note}
 - General pose and proportions
 
 ORIGINAL SPECIFICATIONS TO PRESERVE (unless modification specifies otherwise):
@@ -1361,6 +1369,7 @@ MODIFICATION INSTRUCTIONS:
 - Maintain the same lighting and photo quality
 - Preserve the same background and setting
 - Keep the same gender characteristics and body proportions
+- CRITICAL: Maintain the exact suit composition ({original_request.suit_type})
 
 TECHNICAL REQUIREMENTS:
 - Format: Portrait 4:3 ratio (same as original)
