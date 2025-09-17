@@ -1006,7 +1006,6 @@ L'équipe Blandin & Delloye`
                 </CardContent>
               </Card>
             )}
-          </div>
               </>
             ) : (
           /* User's own requests view */
