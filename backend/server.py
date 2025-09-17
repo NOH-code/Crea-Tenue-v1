@@ -711,7 +711,11 @@ async def get_options():
         "lapel_types": LAPEL_TYPES,
         "pocket_types": POCKET_TYPES,
         "shoe_types": SHOE_TYPES,
-        "accessory_types": ACCESSORY_TYPES
+        "accessory_types": ACCESSORY_TYPES,
+        "genders": [
+            {"value": "homme", "label": "Homme"},
+            {"value": "femme", "label": "Femme"}
+        ]
     }
 
 @api_router.post("/generate")
