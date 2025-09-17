@@ -303,12 +303,14 @@ async def generate_outfit_image(
             suit_composition = "EXACTLY 2 pieces: jacket and trousers ONLY. NO vest, NO waistcoat, NO third piece visible."
             suit_composition_detailed = """
 CRITICAL 2-PIECE SUIT REQUIREMENTS:
-- Show ONLY jacket and trousers
+- Show ONLY jacket and trousers (SANS GILET)
 - NO vest visible at all
 - NO waistcoat under the jacket
 - NO third piece of clothing
+- NO gilet whatsoever
 - The jacket should be worn directly over a shirt/dress shirt
-- ABSOLUTELY NO vest or waistcoat layer between shirt and jacket"""
+- ABSOLUTELY NO vest or waistcoat or gilet layer between shirt and jacket
+- IMPORTANT: SANS GILET (without vest) is mandatory"""
             
         elif "3 pièces" in outfit_request.suit_type.lower():
             suit_composition = "EXACTLY 3 pieces: jacket, trousers, AND waistcoat/vest. The vest MUST be visible under the jacket."
