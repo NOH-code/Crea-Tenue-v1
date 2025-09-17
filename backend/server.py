@@ -271,6 +271,10 @@ async def generate_outfit_image(
         # Build detailed prompt with specific outfit specifications
         atmosphere_desc = ATMOSPHERE_OPTIONS.get(outfit_request.atmosphere, outfit_request.atmosphere)
         
+        # Gender-specific terms
+        person_term = "mariée" if outfit_request.gender == "femme" else "marié"
+        gender_desc = "femme" if outfit_request.gender == "femme" else "homme"
+        
         # Detailed pocket specifications
         pocket_details = {
             "Slanted, no flaps": "slanted pockets without flaps, clean minimal lines",
@@ -301,7 +305,12 @@ async def generate_outfit_image(
         pocket_spec = pocket_details.get(outfit_request.pocket_type, outfit_request.pocket_type)
         lapel_spec = lapel_details.get(outfit_request.lapel_type, outfit_request.lapel_type)
         
-        prompt = f"""Create a professional, photorealistic wedding photo of a groom using the attached full-length model photo.
+        prompt = f"""Create a professional, photorealistic wedding photo of a {person_term} ({gender_desc}) using the attached full-length model photo.
+
+CRITICAL REQUIREMENTS:
+- GENDER: The person must be clearly identifiable as a {gender_desc}
+- MAINTAIN the model's original gender characteristics and physical features
+- PRESERVE the model's body proportions and facial features
 
 CRITICAL SUIT SPECIFICATIONS - FOLLOW EXACTLY:
 
@@ -311,7 +320,7 @@ DETAILED JACKET SPECIFICATIONS:
 - Lapel Style: {lapel_spec}
 - Side Pockets: {pocket_spec}
 - Jacket Fit: Well-tailored, properly fitted to the model's body
-- Jacket Length: Appropriate proportion to the groom's height
+- Jacket Length: Appropriate proportion to the {person_term}'s height
 
 FABRIC AND COLOR:
 - Material: {outfit_request.fabric_description or "premium wedding fabric"}
@@ -338,12 +347,14 @@ TECHNICAL REQUIREMENTS:
 - Focus: Sharp details on all clothing elements
 - Pose: Maintain the model's original pose and proportions
 - Background: Appropriate wedding setting as specified
+- Gender: Ensure the final image clearly shows a {gender_desc} as specified
 
 CRITICAL ATTENTION TO DETAILS:
 - Ensure {outfit_request.pocket_type} are clearly visible and correctly styled
 - Verify {outfit_request.lapel_type} is accurately represented
 - Show proper fabric drape and tailoring
 - Maintain consistent lighting across all garment pieces
+- IMPORTANT: Preserve the original gender characteristics of the model
 
 Generate a stunning, photorealistic wedding image with perfect attention to every specified detail."""
         
