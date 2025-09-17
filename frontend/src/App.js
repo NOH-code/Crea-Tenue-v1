@@ -77,6 +77,12 @@ Cordialement,
 L'équipe Blandin & Delloye`
   });
 
+  // Image modification state
+  const [isModificationDialogOpen, setIsModificationDialogOpen] = useState(false);
+  const [modificationRequestId, setModificationRequestId] = useState('');
+  const [modificationDescription, setModificationDescription] = useState('');
+  const [isModifying, setIsModifying] = useState(false);
+
   // Check for saved authentication on mount
   useEffect(() => {
     const savedToken = localStorage.getItem('access_token');
