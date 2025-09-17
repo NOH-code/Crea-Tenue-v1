@@ -105,6 +105,18 @@
 user_problem_statement: User wants to restore admin code 1149 access and fix image generation that is not working anymore. Additional requirements: Remove "Généré avec IA • Filigrane par Blandin & Delloye" text, multiply logo by 800%, fix email sending, and add email confirmation popup. NEW REQUIREMENTS: Fix admin dialog bug (sends request on each keystroke), implement full user authentication system with email/name/password, user management tab in admin, 5 image limit per user by default, admin can modify user limits, track generated images count per user.
 
 backend:
+  - task: "Suit composition feature with French terms (2 pièces vs 3 pièces)"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ SUIT COMPOSITION FEATURE FULLY OPERATIONAL! COMPREHENSIVE TESTING COMPLETED: ✅ 'Costume 2 pièces' generation working perfectly with French term detection ✅ 'Costume 3 pièces' generation working perfectly with French term detection ✅ Backend logic correctly uses '2 pièces' and '3 pièces' for detection (not English terms) ✅ Prompt generation includes detailed composition instructions: 2-piece suits show NO vest/waistcoat, 3-piece suits show vest/waistcoat MUST be visible ✅ Options endpoint includes French suit types ['Costume 2 pièces', 'Costume 3 pièces'] ✅ Edge case testing with custom descriptions working ✅ All 4/4 suit composition tests passed ✅ French terms correctly detected in backend logic lines 302-326 ✅ Enhanced prompts with explicit composition requirements implemented. CONCLUSION: The improved suit composition feature with French terms is completely functional and ready for production use. Users can now generate images with proper 2-piece vs 3-piece suit compositions using French terminology."
+
   - task: "Remove authentication requirement from image generation"
     implemented: true
     working: true
