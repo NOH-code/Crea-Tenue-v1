@@ -92,7 +92,27 @@ L'équipe Blandin & Delloye`
         localStorage.removeItem('user_data');
       }
     }
-  }, []);
+
+    // Setup axios interceptor for automatic logout on auth errors
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          // Token expired or invalid - auto logout
+          if (isAuthenticated) {
+            toast.error("Session expirée. Reconnexion nécessaire.");
+            handleLogout();
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    // Cleanup interceptor on unmount
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
+  }, [isAuthenticated]);
 
   // Fetch options on authentication
   useEffect(() => {
