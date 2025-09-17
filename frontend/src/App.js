@@ -806,11 +806,11 @@ L'équipe Blandin & Delloye`
             </div>
           </div>
         ) : (
-          /* Admin Panel */
+          /* Admin/User Panel */
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                Panneau d'Administration
+                {user.role === 'admin' ? 'Panneau d\'Administration' : 'Mon Espace'}
               </h2>
               <Button
                 variant="outline"
@@ -821,36 +821,38 @@ L'équipe Blandin & Delloye`
               </Button>
             </div>
 
-            {/* Admin Tabs */}
-            <div className="flex space-x-1 bg-gray-100 dark:bg-slate-800 p-1 rounded-lg">
-              <Button
-                variant={adminTab === 'dashboard' ? 'default' : 'ghost'}
-                onClick={() => setAdminTab('dashboard')}
-                className={adminTab === 'dashboard' ? '' : (isDarkMode ? 'text-white hover:bg-slate-700' : '')}
-              >
-                <BarChart3 className="w-4 h-4 mr-2" />
-                Tableau de bord
-              </Button>
-              <Button
-                variant={adminTab === 'users' ? 'default' : 'ghost'}
-                onClick={() => setAdminTab('users')}
-                className={adminTab === 'users' ? '' : (isDarkMode ? 'text-white hover:bg-slate-700' : '')}
-              >
-                <Users className="w-4 h-4 mr-2" />
-                Utilisateurs
-              </Button>
-              <Button
-                variant={adminTab === 'emailing' ? 'default' : 'ghost'}
-                onClick={() => setAdminTab('emailing')}
-                className={adminTab === 'emailing' ? '' : (isDarkMode ? 'text-white hover:bg-slate-700' : '')}
-              >
-                <Mail className="w-4 h-4 mr-2" />
-                Emailing
-              </Button>
-            </div>
+            {/* Admin Tabs (for admin only) */}
+            {user.role === 'admin' ? (
+              <>
+                <div className="flex space-x-1 bg-gray-100 dark:bg-slate-800 p-1 rounded-lg">
+                  <Button
+                    variant={adminTab === 'dashboard' ? 'default' : 'ghost'}
+                    onClick={() => setAdminTab('dashboard')}
+                    className={adminTab === 'dashboard' ? '' : (isDarkMode ? 'text-white hover:bg-slate-700' : '')}
+                  >
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    Tableau de bord
+                  </Button>
+                  <Button
+                    variant={adminTab === 'users' ? 'default' : 'ghost'}
+                    onClick={() => setAdminTab('users')}
+                    className={adminTab === 'users' ? '' : (isDarkMode ? 'text-white hover:bg-slate-700' : '')}
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    Utilisateurs
+                  </Button>
+                  <Button
+                    variant={adminTab === 'emailing' ? 'default' : 'ghost'}
+                    onClick={() => setAdminTab('emailing')}
+                    className={adminTab === 'emailing' ? '' : (isDarkMode ? 'text-white hover:bg-slate-700' : '')}
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    Emailing
+                  </Button>
+                </div>
 
-            {/* Admin Content */}
-            {adminTab === 'dashboard' && (
+                {/* Admin Content */}
+                {adminTab === 'dashboard' && (
               <div className="space-y-6">
                 {/* Statistics Cards */}
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
