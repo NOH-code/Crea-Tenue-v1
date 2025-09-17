@@ -1108,6 +1108,8 @@ L'équipe Blandin & Delloye`
               </div>
               </>
             )}
+          </div>
+        )}
       </div>
       
       <Toaster position="top-right" />
