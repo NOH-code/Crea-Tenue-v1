@@ -43,6 +43,7 @@ function App() {
     pocket_type: 'En biais, sans rabat',
     shoe_type: 'Mocassins noirs',
     accessory_type: 'Cravate',
+    gender: 'homme',  // New field with default
     fabric_description: '',
     custom_shoe_description: '',
     custom_accessory_description: '',
