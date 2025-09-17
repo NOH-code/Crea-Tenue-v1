@@ -142,6 +142,14 @@ L'équipe Blandin & Delloye`
       setAdminStats(statsResponse.data);
     } catch (error) {
       console.error('Error fetching admin data:', error);
+      
+      // Handle authentication errors - auto logout
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        toast.error("Session expirée. Reconnexion nécessaire.");
+        handleLogout();
+        return;
+      }
+      
       toast.error("Erreur lors du chargement des données admin");
     }
   };
