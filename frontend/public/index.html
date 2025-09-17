@@ -6,30 +6,18 @@
         <meta name="theme-color" content="#000000" />
         <meta name="description" content="A product of emergent.sh" />
         
-        <!-- Google Fonts - Test with more distinctive font first -->
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700&display=swap" rel="stylesheet">
+        <!-- Local Bodoni Moda Font -->
+        <link rel="stylesheet" href="./bodoni-local.css">
         
-        <!-- Inline test to ensure font loading -->
+        <!-- Inline test to ensure local font loading -->
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700&display=swap');
-            
-            /* Test with Playfair Display first - should be very visible */
+            /* Force local Bodoni Moda everywhere */
             * {
-                font-family: 'Playfair Display', 'Bodoni Moda', Georgia, serif !important;
-                font-weight: 400 !important;
-                font-style: normal !important;
+                font-family: 'Bodoni Moda Local', Georgia, serif !important;
             }
             
             body, html {
-                font-family: 'Playfair Display', 'Bodoni Moda', Georgia, serif !important;
-            }
-            
-            /* If Playfair doesn't work, try Bodoni Moda */
-            .force-bodoni {
-                font-family: 'Bodoni Moda', Georgia, serif !important;
-                font-optical-sizing: auto !important;
+                font-family: 'Bodoni Moda Local', Georgia, serif !important;
             }
         </style>
         
