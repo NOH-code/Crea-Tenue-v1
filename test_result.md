@@ -362,7 +362,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Suit composition feature with French terms (2 pièces vs 3 pièces)"
+    - "Enhanced 'Costume 2 pièces' SANS GILET specification testing completed"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
