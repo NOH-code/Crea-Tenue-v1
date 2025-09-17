@@ -631,7 +631,7 @@ L'équipe Blandin & Delloye`
                       value={formData.fabric_description}
                       onChange={(e) => handleFormChange('fabric_description', e.target.value)}
                       placeholder="Décrivez le tissu souhaité..."
-                      className={isDarkMode ? 'bg-slate-800 text-white border-green-800' : ''}
+                      className={isDarkMode ? 'bg-slate-800 text-white border-green-800 placeholder:text-green-400' : 'placeholder:text-gray-500'}
                     />
                   </div>
 
