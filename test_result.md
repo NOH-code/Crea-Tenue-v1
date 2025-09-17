@@ -359,8 +359,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Gender Selection Feature"
-    - "Image Modification Feature"
+    - "Suit composition feature with French terms (2 pièces vs 3 pièces)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
