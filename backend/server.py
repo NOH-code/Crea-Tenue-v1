@@ -1221,6 +1221,201 @@ async def delete_user(user_id: str, admin_user: User = Depends(get_admin_user)):
         logger.error(f"Error deleting user: {e}")
         raise HTTPException(status_code=500, detail="User deletion failed")
 
+# User Export/Import Models
+class UserExportData(BaseModel):
+    nom: str
+    email: EmailStr
+    role: str
+    images_used_total: int
+    images_limit_total: int
+    created_at: str
+    is_active: bool
+
+class UserImportData(BaseModel):
+    nom: str
+    email: EmailStr
+    role: str = UserRole.CLIENT
+    images_used_total: int = 0
+    images_limit_total: int = 5
+    password: str = "password123"  # Default password, user should change it
+    is_active: bool = True
+
+# Export Users Endpoint
+@api_router.get("/admin/users/export")
+async def export_users(format: str = "csv", admin_user: User = Depends(get_admin_user)):
+    """Export all users (admin only)"""
+    try:
+        # Get all users from database
+        users = await db.users.find({}, {"verification_token": 0}).to_list(10000)
+        
+        if format.lower() == "csv":
+            # Create CSV export
+            output = io.StringIO()
+            fieldnames = ['nom', 'email', 'role', 'images_used_total', 'images_limit_total', 'created_at', 'is_active']
+            writer = csv.DictWriter(output, fieldnames=fieldnames)
+            
+            writer.writeheader()
+            for user in users:
+                writer.writerow({
+                    'nom': user.get('nom', ''),
+                    'email': user.get('email', ''),
+                    'role': user.get('role', UserRole.CLIENT),
+                    'images_used_total': user.get('images_used_total', 0),
+                    'images_limit_total': user.get('images_limit_total', 5),
+                    'created_at': user.get('created_at', '').isoformat() if isinstance(user.get('created_at'), datetime) else str(user.get('created_at', '')),
+                    'is_active': user.get('is_active', True)
+                })
+            
+            csv_content = output.getvalue()
+            output.close()
+            
+            # Return CSV file
+            return StreamingResponse(
+                io.StringIO(csv_content),
+                media_type="text/csv",
+                headers={"Content-Disposition": "attachment; filename=users_export.csv"}
+            )
+            
+        elif format.lower() == "json":
+            # Create JSON export
+            export_data = []
+            for user in users:
+                export_data.append({
+                    'nom': user.get('nom', ''),
+                    'email': user.get('email', ''),
+                    'role': user.get('role', UserRole.CLIENT),
+                    'images_used_total': user.get('images_used_total', 0),
+                    'images_limit_total': user.get('images_limit_total', 5),
+                    'created_at': user.get('created_at', '').isoformat() if isinstance(user.get('created_at'), datetime) else str(user.get('created_at', '')),
+                    'is_active': user.get('is_active', True)
+                })
+            
+            json_content = json.dumps(export_data, indent=2, ensure_ascii=False)
+            
+            return StreamingResponse(
+                io.StringIO(json_content),
+                media_type="application/json",
+                headers={"Content-Disposition": "attachment; filename=users_export.json"}
+            )
+        
+        else:
+            raise HTTPException(status_code=400, detail="Format must be 'csv' or 'json'")
+            
+    except Exception as e:
+        logger.error(f"Error exporting users: {e}")
+        raise HTTPException(status_code=500, detail="User export failed")
+
+# Import Users Endpoint
+@api_router.post("/admin/users/import")
+async def import_users(
+    file: UploadFile = File(...),
+    admin_user: User = Depends(get_admin_user)
+):
+    """Import users from CSV/JSON file (admin only)"""
+    try:
+        # Read file content
+        content = await file.read()
+        content_str = content.decode('utf-8')
+        
+        imported_users = []
+        errors = []
+        
+        if file.filename.lower().endswith('.csv'):
+            # Parse CSV
+            csv_reader = csv.DictReader(io.StringIO(content_str))
+            for row_num, row in enumerate(csv_reader, start=2):  # Start at 2 because of header
+                try:
+                    # Validate required fields
+                    if not row.get('email') or not row.get('nom'):
+                        errors.append(f"Ligne {row_num}: Email et nom sont requis")
+                        continue
+                    
+                    # Check if user already exists
+                    existing_user = await db.users.find_one({"email": row['email']})
+                    if existing_user:
+                        errors.append(f"Ligne {row_num}: L'email {row['email']} existe déjà")
+                        continue
+                    
+                    # Create user data
+                    user_data = {
+                        'id': str(uuid.uuid4()),
+                        'nom': row['nom'],
+                        'email': row['email'],
+                        'role': row.get('role', UserRole.CLIENT),
+                        'images_used_total': int(row.get('images_used_total', 0)),
+                        'images_limit_total': int(row.get('images_limit_total', 5)),
+                        'created_at': datetime.now(timezone.utc),
+                        'is_active': bool(row.get('is_active', True)),
+                        'password': hash_password(row.get('password', 'password123')),
+                        'is_verified': True
+                    }
+                    
+                    await db.users.insert_one(user_data)
+                    imported_users.append(user_data['email'])
+                    
+                except Exception as row_error:
+                    errors.append(f"Ligne {row_num}: {str(row_error)}")
+                    
+        elif file.filename.lower().endswith('.json'):
+            # Parse JSON
+            try:
+                json_data = json.loads(content_str)
+                if not isinstance(json_data, list):
+                    raise HTTPException(status_code=400, detail="Le fichier JSON doit contenir une liste d'utilisateurs")
+                
+                for user_num, user_data in enumerate(json_data, start=1):
+                    try:
+                        # Validate required fields
+                        if not user_data.get('email') or not user_data.get('nom'):
+                            errors.append(f"Utilisateur {user_num}: Email et nom sont requis")
+                            continue
+                        
+                        # Check if user already exists
+                        existing_user = await db.users.find_one({"email": user_data['email']})
+                        if existing_user:
+                            errors.append(f"Utilisateur {user_num}: L'email {user_data['email']} existe déjà")
+                            continue
+                        
+                        # Create user
+                        new_user = {
+                            'id': str(uuid.uuid4()),
+                            'nom': user_data['nom'],
+                            'email': user_data['email'],
+                            'role': user_data.get('role', UserRole.CLIENT),
+                            'images_used_total': int(user_data.get('images_used_total', 0)),
+                            'images_limit_total': int(user_data.get('images_limit_total', 5)),
+                            'created_at': datetime.now(timezone.utc),
+                            'is_active': bool(user_data.get('is_active', True)),
+                            'password': hash_password(user_data.get('password', 'password123')),
+                            'is_verified': True
+                        }
+                        
+                        await db.users.insert_one(new_user)
+                        imported_users.append(new_user['email'])
+                        
+                    except Exception as user_error:
+                        errors.append(f"Utilisateur {user_num}: {str(user_error)}")
+                        
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=400, detail="Fichier JSON invalide")
+        
+        else:
+            raise HTTPException(status_code=400, detail="Format de fichier non supporté. Utilisez CSV ou JSON.")
+        
+        return {
+            "success": True,
+            "imported_count": len(imported_users),
+            "imported_users": imported_users,
+            "errors": errors,
+            "message": f"{len(imported_users)} utilisateur(s) importé(s) avec succès"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error importing users: {e}")
+        raise HTTPException(status_code=500, detail="Import failed")
+
 # New endpoint for image modification
 class ImageModificationRequest(BaseModel):
     request_id: str
