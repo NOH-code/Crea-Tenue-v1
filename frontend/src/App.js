@@ -584,7 +584,26 @@ L'équipe Blandin & Delloye`
                   </div>
 
                   {/* Form selects */}
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div>
+                      <Label className={isDarkMode ? 'text-green-300' : 'text-gray-700'}>Sexe</Label>
+                      <Select 
+                        value={formData.gender} 
+                        onValueChange={(value) => handleFormChange('gender', value)}
+                      >
+                        <SelectTrigger className={isDarkMode ? 'bg-slate-800 text-white border-green-800' : ''}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {options.genders?.map((gender) => (
+                            <SelectItem key={gender.value} value={gender.value}>
+                              {gender.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     <div>
                       <Label className={isDarkMode ? 'text-green-300' : 'text-gray-700'}>Ambiance</Label>
                       <Select 
