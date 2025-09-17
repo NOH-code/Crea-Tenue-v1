@@ -1167,6 +1167,19 @@ async def delete_user(user_id: str, admin_user: User = Depends(get_admin_user)):
 # Include router in main app
 app.include_router(api_router)
 
+# User's own requests endpoint (for all authenticated users)
+@api_router.get("/my-requests", response_model=List[OutfitRequest])
+async def get_my_requests(current_user: User = Depends(get_current_user)):
+    """Get current user's own outfit requests"""
+    try:
+        my_requests = await db.outfit_requests.find(
+            {"user_email": current_user.email}
+        ).sort("timestamp", -1).to_list(1000)
+        return [OutfitRequest(**request) for request in my_requests]
+    except Exception as e:
+        logger.error(f"Error fetching user requests: {e}")
+        raise HTTPException(status_code=500, detail="Could not fetch your requests")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
