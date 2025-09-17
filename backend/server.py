@@ -337,6 +337,9 @@ CRITICAL REQUIREMENTS:
 
 CRITICAL SUIT SPECIFICATIONS - FOLLOW EXACTLY:
 
+SUIT TYPE: {outfit_request.suit_type}
+{suit_composition_detailed}
+
 SUIT COMPOSITION: {suit_composition}
 
 DETAILED JACKET SPECIFICATIONS:
@@ -373,13 +376,21 @@ TECHNICAL REQUIREMENTS:
 - Gender: Ensure the final image clearly shows a {gender_desc} as specified
 
 CRITICAL ATTENTION TO DETAILS:
+- SUIT PIECES: {suit_composition}
 - Ensure {outfit_request.pocket_type} are clearly visible and correctly styled
 - Verify {outfit_request.lapel_type} is accurately represented
 - Show proper fabric drape and tailoring
 - Maintain consistent lighting across all garment pieces
 - IMPORTANT: Preserve the original gender characteristics of the model
 
-Generate a stunning, photorealistic wedding image with perfect attention to every specified detail."""
+FINAL VALIDATION CHECKLIST - VERIFY BEFORE GENERATING:
+✓ Correct number of suit pieces as specified: {outfit_request.suit_type}
+✓ All required garment pieces are visible and distinct
+✓ Gender characteristics match the specified {gender_desc}
+✓ Lapel and pocket styles match specifications exactly
+✓ Professional wedding photography quality maintained
+
+Generate a stunning, photorealistic wedding image with perfect attention to every specified detail, especially the correct suit composition."""
         
         # Prepare file contents
         file_contents = [ImageContent(model_base64)]
