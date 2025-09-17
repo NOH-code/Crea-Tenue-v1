@@ -1008,104 +1008,104 @@ L'équipe Blandin & Delloye`
             )}
               </>
             ) : (
-          {/* User's own requests view */}
-          <div className="space-y-6">
-            <Card className={isDarkMode ? 'bg-slate-800 border-slate-700' : ''}>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle className={isDarkMode ? 'text-white' : ''}>
-                    Mes Requêtes
-                  </CardTitle>
-                  <Button onClick={fetchMyRequests} variant="outline">
-                    <BarChart3 className="w-4 h-4 mr-2" />
-                    Actualiser
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {myRequests.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Camera className={`w-12 h-12 mx-auto mb-4 ${isDarkMode ? 'text-green-700' : 'text-gray-400'}`} />
-                    <p className={isDarkMode ? 'text-green-300' : 'text-gray-600'}>
-                      Vous n'avez pas encore généré d'images
-                    </p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className={isDarkMode ? 'border-slate-700' : ''}>
-                          <TableHead className={isDarkMode ? 'text-slate-300' : ''}>Miniature</TableHead>
-                          <TableHead className={isDarkMode ? 'text-slate-300' : ''}>Date</TableHead>
-                          <TableHead className={isDarkMode ? 'text-slate-300' : ''}>Sélections</TableHead>
-                          <TableHead className={isDarkMode ? 'text-slate-300' : ''}>Email</TableHead>
-                          <TableHead className={isDarkMode ? 'text-slate-300' : ''}>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {myRequests.map((request) => (
-                          <TableRow key={request.id} className={isDarkMode ? 'border-slate-700' : ''}>
-                            <TableCell>
-                              <img
-                                src={`${BACKEND_URL}/api/download/generated_${request.id}.png`}
-                                alt="Generated outfit"
-                                className="w-16 h-16 object-cover rounded border"
-                                onError={(e) => {
-                                  e.target.style.display = 'none';
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell className={isDarkMode ? 'text-white' : ''}>
-                              {new Date(request.timestamp).toLocaleDateString('fr-FR', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </TableCell>
-                            <TableCell className={`text-sm ${isDarkMode ? 'text-white' : ''}`}>
-                              <div>
-                                <strong>{request.atmosphere}</strong><br/>
-                                {request.suit_type} • {request.lapel_type}<br/>
-                                {request.pocket_type} • {request.shoe_type}<br/>
-                                {request.accessory_type}
-                              </div>
-                            </TableCell>
-                            <TableCell className={isDarkMode ? 'text-white' : ''}>
-                              {request.email || 'Non renseigné'}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center space-x-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => sendSingleImage(request.id)}
-                                  className={`${isDarkMode ? 'border-green-800 text-green-300 hover:bg-green-900' : 'border-gray-300'}`}
-                                  title="Envoyer cette image par email"
-                                >
-                                  <Mail className="w-4 h-4" />
-                                </Button>
-                                <a
-                                  href={`${BACKEND_URL}/api/download/generated_${request.id}.png`}
-                                  download
-                                  className={`${isDarkMode ? 'text-green-400 hover:text-green-300' : 'text-blue-600 hover:text-blue-800'}`}
-                                  title="Télécharger l'image"
-                                >
-                                  <Download className="w-4 h-4" />
-                                </a>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        )}
+              {/* User's own requests view */}
+              <div className="space-y-6">
+                <Card className={isDarkMode ? 'bg-slate-800 border-slate-700' : ''}>
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <CardTitle className={isDarkMode ? 'text-white' : ''}>
+                        Mes Requêtes
+                      </CardTitle>
+                      <Button onClick={fetchMyRequests} variant="outline">
+                        <BarChart3 className="w-4 h-4 mr-2" />
+                        Actualiser
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {myRequests.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Camera className={`w-12 h-12 mx-auto mb-4 ${isDarkMode ? 'text-green-700' : 'text-gray-400'}`} />
+                        <p className={isDarkMode ? 'text-green-300' : 'text-gray-600'}>
+                          Vous n'avez pas encore généré d'images
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className={isDarkMode ? 'border-slate-700' : ''}>
+                              <TableHead className={isDarkMode ? 'text-slate-300' : ''}>Miniature</TableHead>
+                              <TableHead className={isDarkMode ? 'text-slate-300' : ''}>Date</TableHead>
+                              <TableHead className={isDarkMode ? 'text-slate-300' : ''}>Sélections</TableHead>
+                              <TableHead className={isDarkMode ? 'text-slate-300' : ''}>Email</TableHead>
+                              <TableHead className={isDarkMode ? 'text-slate-300' : ''}>Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {myRequests.map((request) => (
+                              <TableRow key={request.id} className={isDarkMode ? 'border-slate-700' : ''}>
+                                <TableCell>
+                                  <img
+                                    src={`${BACKEND_URL}/api/download/generated_${request.id}.png`}
+                                    alt="Generated outfit"
+                                    className="w-16 h-16 object-cover rounded border"
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                    }}
+                                  />
+                                </TableCell>
+                                <TableCell className={isDarkMode ? 'text-white' : ''}>
+                                  {new Date(request.timestamp).toLocaleDateString('fr-FR', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </TableCell>
+                                <TableCell className={`text-sm ${isDarkMode ? 'text-white' : ''}`}>
+                                  <div>
+                                    <strong>{request.atmosphere}</strong><br/>
+                                    {request.suit_type} • {request.lapel_type}<br/>
+                                    {request.pocket_type} • {request.shoe_type}<br/>
+                                    {request.accessory_type}
+                                  </div>
+                                </TableCell>
+                                <TableCell className={isDarkMode ? 'text-white' : ''}>
+                                  {request.email || 'Non renseigné'}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex items-center space-x-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => sendSingleImage(request.id)}
+                                      className={`${isDarkMode ? 'border-green-800 text-green-300 hover:bg-green-900' : 'border-gray-300'}`}
+                                      title="Envoyer cette image par email"
+                                    >
+                                      <Mail className="w-4 h-4" />
+                                    </Button>
+                                    <a
+                                      href={`${BACKEND_URL}/api/download/generated_${request.id}.png`}
+                                      download
+                                      className={`${isDarkMode ? 'text-green-400 hover:text-green-300' : 'text-blue-600 hover:text-blue-800'}`}
+                                      title="Télécharger l'image"
+                                    >
+                                      <Download className="w-4 h-4" />
+                                    </a>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
       </div>
       
       <Toaster position="top-right" />
