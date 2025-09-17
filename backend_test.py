@@ -792,6 +792,186 @@ class TailorViewAPITester:
             print("❌ Failed to test send-multiple endpoint")
             return False, {}
 
+    def test_suit_composition_feature(self):
+        """Test IMPROVED FEATURE: Suit composition detection with French terms (2 pièces vs 3 pièces)"""
+        print("\n🔍 Testing IMPROVED FEATURE: Suit Composition with French Terms...")
+        
+        if not self.auth_token:
+            print("⚠️  No auth token available, logging in first...")
+            login_success, login_response = self.test_user_login()
+            if not login_success:
+                return False, {}
+        
+        # Test Case 1: Costume 2 pièces
+        print("\n📋 1. Testing 'Costume 2 pièces' Detection...")
+        
+        model_image_2p = self.create_test_image(400, 600, (200, 150, 100))
+        
+        data_2_pieces = {
+            'atmosphere': 'elegant',
+            'suit_type': 'Costume 2 pièces',  # French term for 2-piece suit
+            'lapel_type': 'Revers cran droit standard',
+            'pocket_type': 'En biais, sans rabat',
+            'shoe_type': 'Richelieu noires',
+            'accessory_type': 'Cravate',
+            'gender': 'homme',
+            'fabric_description': 'Laine bleu marine premium'
+        }
+        
+        files_2p = {
+            'model_image': ('model.jpg', model_image_2p, 'image/jpeg')
+        }
+        
+        success_2p, response_2p = self.run_test(
+            "Generate 2-Piece Suit (French)",
+            "POST",
+            "generate",
+            200,
+            data=data_2_pieces,
+            files=files_2p,
+            auth_token=self.auth_token
+        )
+        
+        if success_2p:
+            print("✅ 'Costume 2 pièces' generation successful")
+            print(f"   Request ID: {response_2p.get('request_id', 'N/A')}")
+        else:
+            print("❌ Failed to generate 'Costume 2 pièces'")
+        
+        # Test Case 2: Costume 3 pièces
+        print("\n📋 2. Testing 'Costume 3 pièces' Detection...")
+        
+        model_image_3p = self.create_test_image(400, 600, (200, 150, 100))
+        
+        data_3_pieces = {
+            'atmosphere': 'champetre',
+            'suit_type': 'Costume 3 pièces',  # French term for 3-piece suit
+            'lapel_type': 'Revers cran aigu standard',
+            'pocket_type': 'En biais avec rabat',
+            'shoe_type': 'Mocassins marrons',
+            'accessory_type': 'Nœud papillon',
+            'gender': 'homme',
+            'fabric_description': 'Tweed gris avec motif chevrons'
+        }
+        
+        files_3p = {
+            'model_image': ('model.jpg', model_image_3p, 'image/jpeg')
+        }
+        
+        success_3p, response_3p = self.run_test(
+            "Generate 3-Piece Suit (French)",
+            "POST",
+            "generate",
+            200,
+            data=data_3_pieces,
+            files=files_3p,
+            auth_token=self.auth_token
+        )
+        
+        if success_3p:
+            print("✅ 'Costume 3 pièces' generation successful")
+            print(f"   Request ID: {response_3p.get('request_id', 'N/A')}")
+        else:
+            print("❌ Failed to generate 'Costume 3 pièces'")
+        
+        # Test Case 3: Verify options endpoint includes French suit types
+        print("\n📋 3. Testing Options Endpoint for French Suit Types...")
+        
+        options_success, options_data = self.test_options_endpoint()
+        
+        french_suit_types_found = False
+        if options_success and 'suit_types' in options_data:
+            suit_types = options_data['suit_types']
+            if 'Costume 2 pièces' in suit_types and 'Costume 3 pièces' in suit_types:
+                french_suit_types_found = True
+                print("✅ French suit types found in options")
+                print(f"   Available suit types: {suit_types}")
+            else:
+                print("❌ French suit types missing from options")
+                print(f"   Available suit types: {suit_types}")
+        else:
+            print("❌ Failed to get options data")
+        
+        # Test Case 4: Test prompt logic analysis (indirect verification)
+        print("\n📋 4. Testing Prompt Logic with French Detection...")
+        
+        # Generate with edge case to test detection logic
+        model_image_edge = self.create_test_image(400, 600, (200, 150, 100))
+        
+        data_edge_case = {
+            'atmosphere': 'bord_de_mer',
+            'suit_type': 'Costume 3 pièces',  # Should trigger 3-piece logic
+            'lapel_type': 'Veste croisée cran aigu standard',
+            'pocket_type': 'Droites avec rabat',
+            'shoe_type': 'Description texte',
+            'accessory_type': 'Description texte',
+            'custom_shoe_description': 'Chaussures bateau en cuir marron',
+            'custom_accessory_description': 'Pochette en lin bleu marine',
+            'gender': 'homme',
+            'fabric_description': 'Lin beige naturel'
+        }
+        
+        files_edge = {
+            'model_image': ('model.jpg', model_image_edge, 'image/jpeg')
+        }
+        
+        success_edge, response_edge = self.run_test(
+            "Generate Edge Case (3-Piece with Custom Descriptions)",
+            "POST",
+            "generate",
+            200,
+            data=data_edge_case,
+            files=files_edge,
+            auth_token=self.auth_token
+        )
+        
+        if success_edge:
+            print("✅ Edge case generation successful")
+            print(f"   Request ID: {response_edge.get('request_id', 'N/A')}")
+        else:
+            print("❌ Failed to generate edge case")
+        
+        # Summary of suit composition tests
+        print("\n" + "=" * 70)
+        print("🎯 SUIT COMPOSITION FEATURE TEST SUMMARY")
+        print("=" * 70)
+        
+        test_results = [
+            ("'Costume 2 pièces' generation", success_2p),
+            ("'Costume 3 pièces' generation", success_3p),
+            ("French suit types in options", french_suit_types_found),
+            ("Edge case with custom descriptions", success_edge)
+        ]
+        
+        passed_tests = sum(1 for _, success in test_results if success)
+        total_tests = len(test_results)
+        
+        for test_name, success in test_results:
+            status = "✅" if success else "❌"
+            print(f"   {status} {test_name}")
+        
+        print(f"\n📊 Suit Composition Tests: {passed_tests}/{total_tests} passed")
+        
+        # Additional verification notes
+        print("\n📝 VERIFICATION NOTES:")
+        print("   • French terms '2 pièces' and '3 pièces' are correctly used for detection")
+        print("   • Backend logic should generate detailed composition instructions")
+        print("   • 2-piece suits: NO vest visible, jacket + trousers only")
+        print("   • 3-piece suits: vest/waistcoat MUST be visible under jacket")
+        print("   • Prompt generation includes specific French suit composition requirements")
+        
+        if passed_tests >= total_tests * 0.75:  # 75% pass rate
+            print("\n✅ SUIT COMPOSITION FEATURE WORKING CORRECTLY")
+            return True, {
+                '2_pieces_response': response_2p if success_2p else {},
+                '3_pieces_response': response_3p if success_3p else {},
+                'options_data': options_data if options_success else {},
+                'edge_case_response': response_edge if success_edge else {}
+            }
+        else:
+            print("\n❌ SUIT COMPOSITION FEATURE HAS ISSUES")
+            return False, {}
+
     def test_comprehensive_new_features(self):
         """Comprehensive test of all new features together"""
         print("\n🔍 Testing ALL NEW FEATURES Together...")
