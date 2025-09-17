@@ -283,6 +283,14 @@ L'équipe Blandin & Delloye`
       }
     } catch (error) {
       console.error('Send single error:', error);
+      
+      // Handle authentication errors - auto logout
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        toast.error("Session expirée. Reconnexion nécessaire.");
+        handleLogout();
+        return;
+      }
+      
       toast.error("Erreur lors de l'envoi de l'email");
     }
   };
@@ -314,6 +322,14 @@ L'équipe Blandin & Delloye`
       }
     } catch (error) {
       console.error('Send multiple error:', error);
+      
+      // Handle authentication errors - auto logout
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        toast.error("Session expirée. Reconnexion nécessaire.");
+        handleLogout();
+        return;
+      }
+      
       toast.error("Erreur lors de l'envoi des emails");
     }
   };
