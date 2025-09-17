@@ -584,7 +584,7 @@ L'équipe Blandin & Delloye`
                             onChange={(e) => handleFormChange('custom_shoe_description', e.target.value)}
                             placeholder="Décrivez les chaussures souhaitées..."
                             rows={3}
-                            className={isDarkMode ? 'bg-slate-800 text-white border-green-800' : ''}
+                            className={isDarkMode ? 'bg-slate-800 text-white border-green-800 placeholder:text-green-400' : 'placeholder:text-gray-500'}
                           />
                         </div>
                       )}
