@@ -211,6 +211,14 @@ L'équipe Blandin & Delloye`
       }
     } catch (error) {
       console.error('Generation error:', error);
+      
+      // Handle authentication errors - auto logout
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        toast.error("Session expirée. Reconnexion nécessaire.");
+        handleLogout();
+        return;
+      }
+      
       if (error.response?.status === 403) {
         toast.error("Limite d'images atteinte");
       } else {
