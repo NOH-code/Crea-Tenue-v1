@@ -215,6 +215,21 @@ backend:
       - working: true
         agent: "testing"
         comment: "🚨 URGENT AUTHENTICATION DIAGNOSIS COMPLETE! SYSTEM FULLY OPERATIONAL: ✅ Admin login working perfectly (charles@blandindelloye.com / 114956Xp) ✅ JWT token generation and validation working correctly ✅ Authentication system protecting /api/generate endpoint as designed ✅ Image generation working perfectly WITH proper authentication ✅ New atmosphere options (rue_paris, rue_new_york) fully functional ✅ User credit system tracking image usage correctly ✅ All authentication endpoints operational CRITICAL BUG FIXED: JWT error handling bug (jwt.JWTError -> jwt.InvalidTokenError) was causing 500 errors instead of proper 401 responses. Now returns correct 401 Unauthorized for invalid tokens. CONCLUSION: The reported 401 errors are CORRECT BEHAVIOR - users must authenticate first. Image generation is NOT crashing, it requires valid authentication tokens. Authentication system working as designed."
+
+  - task: "User email tracking fix in admin dashboard"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "ISSUE IDENTIFIED: User email tracking fix was not working because database save happened AFTER image generation. When image generation failed (due to Gemini API quota limits), the database save code was never reached, so user_email field remained None. All 50 existing requests had user_email = None, confirming admin dashboard would show 'N/A'."
+      - working: true
+        agent: "testing"
+        comment: "✅ USER EMAIL TRACKING FIX COMPLETELY RESOLVED! SOLUTION IMPLEMENTED: Moved database save BEFORE image generation in /api/generate endpoint (lines 778-781). This ensures user_email field is always populated even if image generation fails. COMPREHENSIVE TESTING RESULTS: ✅ Database save now happens before image generation ✅ user_email field populated with current_user.email (charles@blandindelloye.com) ✅ Clear distinction between user_email (creator) and email (recipient) ✅ Admin dashboard will show user emails instead of 'N/A' for new requests ✅ Fix works even when image generation fails due to API limits ✅ Database structure supports user_email field correctly. VERIFICATION: Created test request that successfully saved user_email='charles@blandindelloye.com' and email='test-recipient@example.com'. The reported issue with admin dashboard showing 'N/A' for user email is COMPLETELY RESOLVED for all new outfit requests."
     status_history:
       - working: false
         agent: "main"
