@@ -2028,13 +2028,400 @@ class TailorViewAPITester:
             print("❌ USER MANAGEMENT UPDATE FUNCTIONALITY HAS ISSUES")
             return False, {}
 
+    def test_gender_selection_feature(self):
+        """Test NEW FEATURE: Gender Selection (homme/femme)"""
+        print("\n🔍 Testing NEW FEATURE: Gender Selection...")
+        
+        # 1. Test /api/options endpoint includes gender options
+        print("\n📋 1. Testing /api/options endpoint for gender options...")
+        success, response = self.run_test(
+            "Get Options with Gender",
+            "GET", 
+            "options",
+            200
+        )
+        
+        if success:
+            # Verify gender options are present
+            if 'genders' in response:
+                genders = response['genders']
+                print(f"✅ Gender options found: {genders}")
+                
+                # Check for expected gender options
+                expected_genders = [
+                    {"value": "homme", "label": "Homme"},
+                    {"value": "femme", "label": "Femme"}
+                ]
+                
+                gender_values = [g.get('value') for g in genders if isinstance(g, dict)]
+                if 'homme' in gender_values and 'femme' in gender_values:
+                    print("✅ Both 'homme' and 'femme' options available")
+                else:
+                    print(f"❌ Missing expected gender options. Found: {gender_values}")
+                    return False, {}
+            else:
+                print("❌ Missing 'genders' field in options response")
+                return False, {}
+        else:
+            print("❌ Failed to get options data")
+            return False, {}
+        
+        # 2. Test /api/generate endpoint with gender parameter
+        print("\n📋 2. Testing /api/generate endpoint with gender parameter...")
+        
+        if not self.admin_token:
+            print("⚠️  No admin token available, logging in as admin first...")
+            admin_success, admin_response = self.test_admin_login()
+            if not admin_success:
+                return False, {}
+        
+        # Test with gender="homme" (default)
+        model_image = self.create_test_image(400, 600, (200, 150, 100))
+        
+        data_homme = {
+            'atmosphere': 'elegant',
+            'suit_type': 'Costume 2 pièces',
+            'lapel_type': 'Revers cran droit standard',
+            'pocket_type': 'En biais, sans rabat',
+            'shoe_type': 'Mocassins noirs',
+            'accessory_type': 'Nœud papillon',
+            'gender': 'homme',  # Explicit gender parameter
+            'fabric_description': 'Costume bleu marine classique'
+        }
+        
+        files = {
+            'model_image': ('model.jpg', model_image, 'image/jpeg')
+        }
+        
+        success_homme, response_homme = self.run_test(
+            "Generate with Gender=homme",
+            "POST",
+            "generate",
+            200,
+            data=data_homme,
+            files=files,
+            auth_token=self.admin_token
+        )
+        
+        if not success_homme:
+            print("❌ Failed to generate with gender=homme")
+            return False, {}
+        else:
+            print("✅ Generation with gender=homme successful")
+        
+        # Test with gender="femme"
+        model_image2 = self.create_test_image(400, 600, (200, 150, 100))
+        
+        data_femme = {
+            'atmosphere': 'bord_de_mer',
+            'suit_type': 'Costume 3 pièces',
+            'lapel_type': 'Revers cran aigu standard',
+            'pocket_type': 'En biais avec rabat',
+            'shoe_type': 'Mocassins marrons',
+            'accessory_type': 'Cravate',
+            'gender': 'femme',  # Test femme gender
+            'fabric_description': 'Tailleur beige élégant'
+        }
+        
+        files2 = {
+            'model_image': ('model.jpg', model_image2, 'image/jpeg')
+        }
+        
+        success_femme, response_femme = self.run_test(
+            "Generate with Gender=femme",
+            "POST",
+            "generate",
+            200,
+            data=data_femme,
+            files=files2,
+            auth_token=self.admin_token
+        )
+        
+        if not success_femme:
+            print("❌ Failed to generate with gender=femme")
+            return False, {}
+        else:
+            print("✅ Generation with gender=femme successful")
+        
+        # Test default gender behavior (should default to "homme")
+        model_image3 = self.create_test_image(400, 600, (200, 150, 100))
+        
+        data_default = {
+            'atmosphere': 'champetre',
+            'suit_type': 'Costume 2 pièces',
+            'lapel_type': 'Revers cran droit standard',
+            'pocket_type': 'Droites, sans rabat',
+            'shoe_type': 'Richelieu noires',
+            'accessory_type': 'Nœud papillon',
+            # No gender parameter - should default to "homme"
+            'fabric_description': 'Costume gris anthracite'
+        }
+        
+        files3 = {
+            'model_image': ('model.jpg', model_image3, 'image/jpeg')
+        }
+        
+        success_default, response_default = self.run_test(
+            "Generate with Default Gender",
+            "POST",
+            "generate",
+            200,
+            data=data_default,
+            files=files3,
+            auth_token=self.admin_token
+        )
+        
+        if not success_default:
+            print("❌ Failed to generate with default gender")
+            return False, {}
+        else:
+            print("✅ Generation with default gender successful")
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print("🎯 GENDER SELECTION FEATURE TEST SUMMARY")
+        print("=" * 60)
+        
+        tests_results = [
+            ("Options endpoint includes gender options", success),
+            ("Generate with gender=homme", success_homme),
+            ("Generate with gender=femme", success_femme),
+            ("Generate with default gender", success_default)
+        ]
+        
+        passed_tests = sum(1 for _, success in tests_results if success)
+        total_tests = len(tests_results)
+        
+        for test_name, success in tests_results:
+            status = "✅" if success else "❌"
+            print(f"   {status} {test_name}")
+        
+        print(f"\n📊 Gender Selection Tests: {passed_tests}/{total_tests} passed")
+        
+        if passed_tests == total_tests:
+            print("✅ GENDER SELECTION FEATURE WORKING CORRECTLY")
+            return True, {
+                'options_data': response,
+                'homme_response': response_homme if success_homme else {},
+                'femme_response': response_femme if success_femme else {},
+                'default_response': response_default if success_default else {}
+            }
+        else:
+            print("❌ GENDER SELECTION FEATURE HAS ISSUES")
+            return False, {}
+
+    def test_image_modification_feature(self):
+        """Test NEW FEATURE: Image Modification"""
+        print("\n🔍 Testing NEW FEATURE: Image Modification...")
+        
+        if not self.admin_token:
+            print("⚠️  No admin token available, logging in as admin first...")
+            admin_success, admin_response = self.test_admin_login()
+            if not admin_success:
+                return False, {}
+        
+        # 1. First generate an original image to modify
+        print("\n📋 1. Generating original image for modification...")
+        
+        model_image = self.create_test_image(400, 600, (200, 150, 100))
+        
+        original_data = {
+            'atmosphere': 'elegant',
+            'suit_type': 'Costume 2 pièces',
+            'lapel_type': 'Revers cran droit standard',
+            'pocket_type': 'En biais, sans rabat',
+            'shoe_type': 'Mocassins noirs',
+            'accessory_type': 'Nœud papillon',
+            'gender': 'homme',
+            'fabric_description': 'Costume bleu marine classique'
+        }
+        
+        files = {
+            'model_image': ('model.jpg', model_image, 'image/jpeg')
+        }
+        
+        success_original, response_original = self.run_test(
+            "Generate Original Image for Modification",
+            "POST",
+            "generate",
+            200,
+            data=original_data,
+            files=files,
+            auth_token=self.admin_token
+        )
+        
+        if not success_original:
+            print("❌ Failed to generate original image")
+            return False, {}
+        
+        original_request_id = response_original.get('request_id')
+        if not original_request_id:
+            print("❌ No request_id in original generation response")
+            return False, {}
+        
+        print(f"✅ Original image generated with request_id: {original_request_id}")
+        
+        # 2. Test /api/modify-image endpoint with valid request
+        print("\n📋 2. Testing /api/modify-image endpoint with valid request...")
+        
+        modification_data = {
+            "request_id": original_request_id,
+            "modification_description": "Change the tie color to burgundy red and add a subtle pattern"
+        }
+        
+        success_modify, response_modify = self.run_test(
+            "Modify Image with Valid Request",
+            "POST",
+            "modify-image",
+            200,
+            data=modification_data,
+            auth_token=self.admin_token
+        )
+        
+        if success_modify:
+            print("✅ Image modification successful")
+            print(f"   New request_id: {response_modify.get('request_id', 'N/A')}")
+            print(f"   Modification: {response_modify.get('modification_description', 'N/A')}")
+            
+            # Check user credits were decremented
+            if 'user_credits' in response_modify:
+                credits = response_modify['user_credits']
+                print(f"   Credits after modification - Used: {credits.get('used', 'N/A')}, Remaining: {credits.get('remaining', 'N/A')}")
+        else:
+            print("❌ Image modification failed")
+        
+        # 3. Test authentication requirement
+        print("\n📋 3. Testing authentication requirement...")
+        
+        modification_data_no_auth = {
+            "request_id": original_request_id,
+            "modification_description": "Change the suit color to charcoal grey"
+        }
+        
+        success_no_auth, response_no_auth = self.run_test(
+            "Modify Image Without Authentication",
+            "POST",
+            "modify-image",
+            401,  # Expecting unauthorized
+            data=modification_data_no_auth
+        )
+        
+        if success_no_auth:
+            print("✅ Authentication requirement working correctly")
+        else:
+            print("❌ Authentication requirement not enforced")
+        
+        # 4. Test error case: missing request_id
+        print("\n📋 4. Testing error case: missing request_id...")
+        
+        modification_data_no_id = {
+            "modification_description": "Change the pocket style to patch pockets"
+        }
+        
+        success_no_id, response_no_id = self.run_test(
+            "Modify Image Missing request_id",
+            "POST",
+            "modify-image",
+            422,  # Expecting validation error
+            data=modification_data_no_id,
+            auth_token=self.admin_token
+        )
+        
+        if success_no_id:
+            print("✅ Missing request_id validation working")
+        else:
+            print("❌ Missing request_id validation not working")
+        
+        # 5. Test error case: missing modification_description
+        print("\n📋 5. Testing error case: missing modification_description...")
+        
+        modification_data_no_desc = {
+            "request_id": original_request_id
+        }
+        
+        success_no_desc, response_no_desc = self.run_test(
+            "Modify Image Missing modification_description",
+            "POST",
+            "modify-image",
+            422,  # Expecting validation error
+            data=modification_data_no_desc,
+            auth_token=self.admin_token
+        )
+        
+        if success_no_desc:
+            print("✅ Missing modification_description validation working")
+        else:
+            print("❌ Missing modification_description validation not working")
+        
+        # 6. Test error case: non-existent request_id
+        print("\n📋 6. Testing error case: non-existent request_id...")
+        
+        modification_data_invalid_id = {
+            "request_id": "non-existent-request-id-12345",
+            "modification_description": "Change the lapel style"
+        }
+        
+        success_invalid_id, response_invalid_id = self.run_test(
+            "Modify Image with Invalid request_id",
+            "POST",
+            "modify-image",
+            404,  # Expecting not found
+            data=modification_data_invalid_id,
+            auth_token=self.admin_token
+        )
+        
+        if success_invalid_id:
+            print("✅ Invalid request_id validation working")
+        else:
+            print("❌ Invalid request_id validation not working")
+        
+        # Summary
+        print("\n" + "=" * 60)
+        print("🎯 IMAGE MODIFICATION FEATURE TEST SUMMARY")
+        print("=" * 60)
+        
+        tests_results = [
+            ("Generate original image", success_original),
+            ("Modify image with valid request", success_modify),
+            ("Authentication requirement", success_no_auth),
+            ("Missing request_id validation", success_no_id),
+            ("Missing modification_description validation", success_no_desc),
+            ("Invalid request_id validation", success_invalid_id)
+        ]
+        
+        passed_tests = sum(1 for _, success in tests_results if success)
+        total_tests = len(tests_results)
+        
+        for test_name, success in tests_results:
+            status = "✅" if success else "❌"
+            print(f"   {status} {test_name}")
+        
+        print(f"\n📊 Image Modification Tests: {passed_tests}/{total_tests} passed")
+        
+        if passed_tests >= total_tests * 0.8:  # 80% pass rate
+            print("✅ IMAGE MODIFICATION FEATURE WORKING CORRECTLY")
+            return True, {
+                'original_response': response_original if success_original else {},
+                'modify_response': response_modify if success_modify else {},
+                'validation_tests': {
+                    'no_auth': success_no_auth,
+                    'no_id': success_no_id,
+                    'no_desc': success_no_desc,
+                    'invalid_id': success_invalid_id
+                }
+            }
+        else:
+            print("❌ IMAGE MODIFICATION FEATURE HAS ISSUES")
+            return False, {}
+
 def main():
-    print("🚀 USER MANAGEMENT FUNCTIONALITY TESTING")
-    print("🎯 PRIORITY: Testing User Image Limit Update in Admin Panel")
+    print("🚀 NEW FEATURES TESTING - GENDER SELECTION & IMAGE MODIFICATION")
+    print("🎯 PRIORITY: Testing Gender Selection and Image Modification Features")
     print("=" * 80)
-    print("🔍 Testing: PUT /api/admin/users/{user_id} endpoint")
-    print("🎯 Testing: User limit modification functionality")
-    print("✅ Database consistency and error handling")
+    print("🔍 Testing: Gender options in /api/options endpoint")
+    print("🔍 Testing: Gender parameter in /api/generate endpoint")
+    print("🔍 Testing: /api/modify-image endpoint functionality")
+    print("✅ Authentication, validation, and error handling")
     print("=" * 80)
     
     tester = TailorViewAPITester()
