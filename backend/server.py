@@ -1199,6 +1199,187 @@ async def get_my_requests(current_user: User = Depends(get_current_user)):
         logger.error(f"Error fetching user requests: {e}")
         raise HTTPException(status_code=500, detail="Could not fetch your requests")
 
+@api_router.get("/user/requests")
+async def get_user_requests(current_user: User = Depends(get_current_user)):
+    """Get requests for the current user"""
+    requests = await db.outfit_requests.find({"user_email": current_user.email}).sort("timestamp", -1).to_list(1000)
+    return [OutfitRequest(**request) for request in requests]
+
+# New endpoint for image modification
+class ImageModificationRequest(BaseModel):
+    request_id: str
+    modification_description: str
+
+@api_router.post("/modify-image")
+async def modify_existing_image(
+    modification_request: ImageModificationRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Modify an existing generated image with minor changes"""
+    try:
+        # Check if user has remaining image generation credits
+        if current_user.images_used_total >= current_user.images_limit_total:
+            raise HTTPException(
+                status_code=403, 
+                detail=f"Image generation limit exceeded. Used: {current_user.images_used_total}/{current_user.images_limit_total}"
+            )
+        
+        # Find the original request
+        original_request = await db.outfit_requests.find_one({"id": modification_request.request_id})
+        if not original_request:
+            raise HTTPException(status_code=404, detail="Original request not found")
+        
+        # Check if the user owns this request or is admin
+        if original_request.get("user_email") != current_user.email and current_user.role != UserRole.ADMIN:
+            raise HTTPException(status_code=403, detail="Access denied to this request")
+        
+        # Check if the original image exists
+        original_image_path = Path(f"/app/generated_images/generated_{modification_request.request_id}.png")
+        if not original_image_path.exists():
+            raise HTTPException(status_code=404, detail="Original image not found")
+        
+        # Read the original image
+        with open(original_image_path, 'rb') as f:
+            original_image_data = f.read()
+        
+        # Create modified image using AI
+        modified_image = await modify_outfit_image(
+            original_image_data,
+            OutfitRequest(**original_request),
+            modification_request.modification_description
+        )
+        
+        # Create a new request record for the modified image
+        new_request = OutfitRequest(**original_request)
+        new_request.id = str(uuid.uuid4())  # New unique ID
+        new_request.timestamp = datetime.now(timezone.utc)
+        new_request.user_email = current_user.email  # Current user as creator
+        
+        # Save the new request to database
+        new_request_dict = new_request.dict()
+        new_request_dict["modification_description"] = modification_request.modification_description
+        new_request_dict["original_request_id"] = modification_request.request_id
+        await db.outfit_requests.insert_one(new_request_dict)
+        
+        # Save modified image
+        image_filename = f"generated_{new_request.id}.png"
+        image_path = Path(f"/app/generated_images/{image_filename}")
+        
+        async with aiofiles.open(image_path, 'wb') as f:
+            await f.write(modified_image)
+        
+        # Increment user's image usage count
+        await db.users.update_one(
+            {"id": current_user.id},
+            {"$inc": {"images_used_total": 1}}
+        )
+        
+        # Get updated user info for response
+        updated_user_data = await db.users.find_one({"id": current_user.id})
+        updated_user = User(**updated_user_data)
+        
+        return {
+            "success": True,
+            "request_id": new_request.id,
+            "image_filename": image_filename,
+            "download_url": f"/api/download/{image_filename}",
+            "message": "Image modified successfully!",
+            "modification_description": modification_request.modification_description,
+            "user_credits": {
+                "used": updated_user.images_used_total,
+                "limit": updated_user.images_limit_total,
+                "remaining": updated_user.images_limit_total - updated_user.images_used_total
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in modify_existing_image: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+async def modify_outfit_image(
+    original_image_data: bytes,
+    original_request: OutfitRequest,
+    modification_description: str
+) -> bytes:
+    """Modify an existing outfit image using Gemini with specific changes"""
+    
+    try:
+        # Get Emergent LLM key
+        api_key = os.getenv('EMERGENT_LLM_KEY')
+        
+        # Create chat instance
+        chat = LlmChat(
+            api_key=api_key, 
+            session_id=f"outfit_modify_{uuid.uuid4()}", 
+            system_message="You are a professional fashion designer specializing in wedding attire modifications."
+        )
+        chat.with_model("gemini", "gemini-2.5-flash-image-preview").with_params(modalities=["image", "text"])
+        
+        # Convert original image to base64
+        original_base64 = base64.b64encode(original_image_data).decode('utf-8')
+        
+        # Build modification prompt
+        atmosphere_desc = ATMOSPHERE_OPTIONS.get(original_request.atmosphere, original_request.atmosphere)
+        person_term = "mariée" if original_request.gender == "femme" else "marié"
+        gender_desc = "femme" if original_request.gender == "femme" else "homme"
+        
+        prompt = f"""Based on the attached wedding photo, create a modified version with the following specific changes:
+
+MODIFICATION REQUEST: {modification_description}
+
+MAINTAIN THESE ORIGINAL ELEMENTS:
+- Gender: {gender_desc} ({person_term})
+- Overall style and composition
+- Wedding setting: {atmosphere_desc}
+- Basic suit structure: {original_request.suit_type}
+- General pose and proportions
+
+ORIGINAL SPECIFICATIONS TO PRESERVE (unless modification specifies otherwise):
+- Lapel Style: {original_request.lapel_type}
+- Pocket Style: {original_request.pocket_type}
+- Shoe Type: {original_request.shoe_type}
+- Accessory: {original_request.accessory_type}
+- Fabric: {original_request.fabric_description or "premium wedding fabric"}
+
+MODIFICATION INSTRUCTIONS:
+- Apply ONLY the specific changes requested: {modification_description}
+- Keep all other elements identical to the original
+- Maintain the same lighting and photo quality
+- Preserve the same background and setting
+- Keep the same gender characteristics and body proportions
+
+TECHNICAL REQUIREMENTS:
+- Format: Portrait 4:3 ratio (same as original)
+- Quality: High-resolution, professional wedding photography standard
+- Consistency: Match the original photo's style and lighting
+- Focus: Ensure modifications are seamlessly integrated
+
+Generate the modified wedding image with only the requested changes, keeping everything else identical to the original."""
+        
+        # Create message with original image
+        file_contents = [ImageContent(original_base64)]
+        msg = UserMessage(text=prompt, file_contents=file_contents)
+        
+        # Generate modified image
+        text, images = await chat.send_message_multimodal_response(msg)
+        
+        if images and len(images) > 0:
+            # Decode base64 image
+            image_bytes = base64.b64decode(images[0]['data'])
+            
+            # Apply watermark
+            watermarked_image = await apply_watermark(image_bytes)
+            
+            return watermarked_image
+        else:
+            raise HTTPException(status_code=500, detail="Failed to modify image")
+            
+    except Exception as e:
+        logger.error(f"Error modifying outfit image: {e}")
+        raise HTTPException(status_code=500, detail=f"Image modification failed: {str(e)}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
