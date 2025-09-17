@@ -914,8 +914,8 @@ L'équipe Blandin & Delloye`
                             <TableHead className={isDarkMode ? 'text-slate-300' : ''}>Miniature</TableHead>
                             <TableHead className={isDarkMode ? 'text-slate-300' : ''}>ID</TableHead>
                             <TableHead className={isDarkMode ? 'text-slate-300' : ''}>Utilisateur</TableHead>
+                            <TableHead className={isDarkMode ? 'text-slate-300' : ''}>Email du formulaire</TableHead>
                             <TableHead className={isDarkMode ? 'text-slate-300' : ''}>Sélections</TableHead>
-                            <TableHead className={isDarkMode ? 'text-slate-300' : ''}>Email envoyé</TableHead>
                             <TableHead className={isDarkMode ? 'text-slate-300' : ''}>Actions</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -936,7 +936,10 @@ L'équipe Blandin & Delloye`
                                 {request.id.substring(0, 8)}...
                               </TableCell>
                               <TableCell className={isDarkMode ? 'text-white' : ''}>
-                                {request.user_email || request.email || 'N/A'}
+                                {request.user_email || 'N/A'}
+                              </TableCell>
+                              <TableCell className={isDarkMode ? 'text-white' : ''}>
+                                {request.email || 'Non renseigné'}
                               </TableCell>
                               <TableCell className={`text-sm ${isDarkMode ? 'text-white' : ''}`}>
                                 <div>
@@ -945,11 +948,6 @@ L'équipe Blandin & Delloye`
                                   {request.pocket_type} • {request.shoe_type}<br/>
                                   {request.accessory_type}
                                 </div>
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant={request.email ? 'default' : 'secondary'}>
-                                  {request.email ? 'Oui' : 'Non'}
-                                </Badge>
                               </TableCell>
                               <TableCell>
                                 <a
