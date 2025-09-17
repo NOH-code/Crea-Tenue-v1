@@ -24,6 +24,11 @@ const UserManagementTab = ({ isDarkMode, accessToken }) => {
     images_used_total: '',
     is_active: true
   });
+  
+  // Import/Export states
+  const [isImporting, setIsImporting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [importFile, setImportFile] = useState(null);
 
   const fetchUsers = async () => {
     setLoading(true);
