@@ -772,13 +772,13 @@ async def generate_outfit(
             email=email
         )
         
-        # Generate image
-        generated_image = await generate_outfit_image(model_data, fabric_data, shoe_data, accessory_data, outfit_request)
-        
-        # Save to database with user information
+        # Save to database with user information FIRST (before image generation)
         outfit_record = OutfitRequest(**outfit_request.dict())
         outfit_record.user_email = current_user.email  # Add the connected user's email
         await db.outfit_requests.insert_one(outfit_record.dict())
+        
+        # Generate image
+        generated_image = await generate_outfit_image(model_data, fabric_data, shoe_data, accessory_data, outfit_request)
         
         # Save generated image
         image_filename = f"generated_{outfit_record.id}.png"
