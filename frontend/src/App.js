@@ -118,6 +118,20 @@ L'équipe Blandin & Delloye`
   useEffect(() => {
     if (isAuthenticated) {
       fetchOptions();
+      
+      // Set up periodic token validation
+      const tokenCheckInterval = setInterval(async () => {
+        try {
+          await axios.get(`${API}/auth/me`);
+        } catch (error) {
+          if (error.response?.status === 401 || error.response?.status === 403) {
+            console.log('Token expired, logging out...');
+            handleLogout();
+          }
+        }
+      }, 5 * 60 * 1000); // Check every 5 minutes
+
+      return () => clearInterval(tokenCheckInterval);
     }
   }, [isAuthenticated]);
 
