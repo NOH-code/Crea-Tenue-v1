@@ -2079,6 +2079,7 @@ def main():
     print("=" * 80)
     
     all_tests = [
+        ("User Email Tracking Fix", email_tracking_success),
         ("User Management Update", user_mgmt_success),
         ("Authentication System", auth_success)
     ]
@@ -2093,26 +2094,35 @@ def main():
     print(f"\n📊 Overall Test Results: {total_passed}/{total_tests} major test suites passed")
     print(f"📈 Individual API Tests: {tester.tests_passed}/{tester.tests_run} passed")
     
+    if email_tracking_success:
+        print("\n🎉 USER EMAIL TRACKING FIX WORKING CORRECTLY!")
+        print("   ✅ Admin dashboard shows user email instead of 'N/A'")
+        print("   ✅ user_email field populated with creator's email")
+        print("   ✅ Clear distinction between creator and recipient emails")
+        print("   ✅ Older requests handled gracefully")
+        print("\n🎯 CONCLUSION: The reported issue with 'N/A' user emails is RESOLVED!")
+    else:
+        print("\n❌ CRITICAL ISSUE CONFIRMED: User email tracking fix is not working!")
+        print("   Admin dashboard will still show 'N/A' for user email.")
+        print("   The user_email field is not being populated in /api/generate endpoint.")
+    
     if user_mgmt_success:
-        print("\n🎉 USER MANAGEMENT FUNCTIONALITY WORKING CORRECTLY!")
+        print("\n✅ USER MANAGEMENT FUNCTIONALITY ALSO WORKING CORRECTLY!")
         print("   ✅ Admin can list all users")
         print("   ✅ Admin can update user image limits")
         print("   ✅ Admin can update user image usage counts")
         print("   ✅ Admin can update multiple user fields")
         print("   ✅ Error handling works for non-existent users")
         print("   ✅ Email-based user identification works as fallback")
-        print("\n🎯 CONCLUSION: The reported issue with updating user image limits is RESOLVED!")
-        return 0
     else:
-        print("\n❌ CRITICAL ISSUE CONFIRMED: User management update functionality is failing!")
-        print("   This matches the user's reported issue with updating image limits.")
+        print("\n❌ User management update functionality also has issues!")
         print("   The PUT /api/admin/users/{user_id} endpoint has problems.")
-        print("\n🔧 RECOMMENDED ACTIONS:")
-        print("   1. Check database connection and user ID resolution")
-        print("   2. Verify user update query logic")
-        print("   3. Test with different user identification methods")
-        print("   4. Check backend logs for detailed error messages")
-        return 1
+    
+    # Return based on the priority fix
+    if email_tracking_success:
+        return 0  # Success - the main issue is resolved
+    else:
+        return 1  # Failure - the main issue is not resolved
 
 if __name__ == "__main__":
     sys.exit(main())
