@@ -2595,46 +2595,41 @@ class TailorViewAPITester:
             return False, {}
 
 def main():
-    print("🚀 NEW FEATURES TESTING - GENDER SELECTION & IMAGE MODIFICATION")
-    print("🎯 PRIORITY: Testing Gender Selection and Image Modification Features")
+    print("🚀 SUIT COMPOSITION FEATURE TESTING - FRENCH TERMS (2 pièces vs 3 pièces)")
+    print("🎯 PRIORITY: Testing IMPROVED Suit Composition Detection with French Terms")
     print("=" * 80)
-    print("🔍 Testing: Gender options in /api/options endpoint")
-    print("🔍 Testing: Gender parameter in /api/generate endpoint")
-    print("🔍 Testing: /api/modify-image endpoint functionality")
-    print("✅ Authentication, validation, and error handling")
+    print("🔍 Testing: 'Costume 2 pièces' detection and prompt generation")
+    print("🔍 Testing: 'Costume 3 pièces' detection and prompt generation")
+    print("🔍 Testing: French suit composition logic in backend")
+    print("✅ Verification that prompts include proper composition instructions")
     print("=" * 80)
     
     tester = TailorViewAPITester()
     
-    # NEW FEATURES TESTS - Priority for this review
-    print("\n🆕 PRIORITY: NEW FEATURES TESTING")
+    # SUIT COMPOSITION FEATURE TEST - Priority for this review
+    print("\n🆕 PRIORITY: SUIT COMPOSITION FEATURE TESTING")
     print("=" * 60)
     
-    # Test Gender Selection Feature
-    print("\n📋 TESTING GENDER SELECTION FEATURE")
-    gender_success, gender_data = tester.test_gender_selection_feature()
+    # Test Suit Composition Feature
+    print("\n📋 TESTING IMPROVED SUIT COMPOSITION FEATURE")
+    suit_success, suit_data = tester.test_suit_composition_feature()
     
-    if not gender_success:
-        print("\n❌ CRITICAL ISSUE FOUND: Gender selection feature is not working!")
-        print("   /api/options may not include gender options or /api/generate may not accept gender parameter.")
+    if not suit_success:
+        print("\n❌ CRITICAL ISSUE FOUND: Suit composition feature is not working correctly!")
+        print("   French terms '2 pièces' and '3 pièces' may not be properly detected.")
+        print("   Prompt generation may not include proper composition instructions.")
     else:
-        print("\n✅ Gender selection feature working correctly!")
-        print("   Both /api/options and /api/generate endpoints support gender selection.")
+        print("\n✅ Suit composition feature working correctly!")
+        print("   French terms are properly detected and prompts include detailed instructions.")
     
-    # Test Image Modification Feature
-    print("\n📋 TESTING IMAGE MODIFICATION FEATURE")
-    modify_success, modify_data = tester.test_image_modification_feature()
+    # Additional basic API tests to ensure system is functional
+    print("\n📋 BASIC API FUNCTIONALITY TESTS")
     
-    if not modify_success:
-        print("\n❌ CRITICAL ISSUE FOUND: Image modification feature is not working!")
-        print("   /api/modify-image endpoint may have issues with authentication or validation.")
-    else:
-        print("\n✅ Image modification feature working correctly!")
-        print("   /api/modify-image endpoint working with proper authentication and validation.")
+    # Test options endpoint
+    options_success, options_data = tester.test_options_endpoint()
     
-    # Additional authentication system tests
-    print("\n📋 TESTING AUTHENTICATION SYSTEM (Supporting Tests)")
-    auth_success, auth_data = tester.test_authentication_system_comprehensive()
+    # Test admin login for authentication
+    admin_success, admin_data = tester.test_admin_login()
     
     # Summary of all tests
     print("\n" + "=" * 80)
@@ -2642,9 +2637,9 @@ def main():
     print("=" * 80)
     
     all_tests = [
-        ("Gender Selection Feature", gender_success),
-        ("Image Modification Feature", modify_success),
-        ("Authentication System", auth_success)
+        ("Suit Composition Feature (French Terms)", suit_success),
+        ("Options Endpoint", options_success),
+        ("Admin Authentication", admin_success)
     ]
     
     total_passed = sum(1 for _, success in all_tests if success)
@@ -2657,34 +2652,29 @@ def main():
     print(f"\n📊 Overall Test Results: {total_passed}/{total_tests} major test suites passed")
     print(f"📈 Individual API Tests: {tester.tests_passed}/{tester.tests_run} passed")
     
-    if gender_success:
-        print("\n🎉 GENDER SELECTION FEATURE WORKING CORRECTLY!")
-        print("   ✅ /api/options endpoint includes gender options (homme/femme)")
-        print("   ✅ /api/generate endpoint accepts gender parameter")
-        print("   ✅ Both 'homme' and 'femme' options working")
-        print("   ✅ Default gender behavior working (defaults to 'homme')")
-        print("\n🎯 CONCLUSION: Gender selection feature is fully operational!")
+    if suit_success:
+        print("\n🎉 SUIT COMPOSITION FEATURE WORKING CORRECTLY!")
+        print("   ✅ 'Costume 2 pièces' generates proper 2-piece instructions (NO vest)")
+        print("   ✅ 'Costume 3 pièces' generates proper 3-piece instructions (WITH vest)")
+        print("   ✅ French terms correctly detected in backend logic")
+        print("   ✅ Prompt generation includes detailed composition requirements")
+        print("   ✅ Options endpoint includes French suit types")
+        print("\n🎯 CONCLUSION: Suit composition feature with French terms is fully operational!")
+        print("\n📝 VERIFICATION DETAILS:")
+        print("   • Backend logic uses '2 pièces' and '3 pièces' for detection (not English terms)")
+        print("   • 2-piece suits: Detailed instructions to show NO vest/waistcoat")
+        print("   • 3-piece suits: Detailed instructions to show vest/waistcoat MUST be visible")
+        print("   • Enhanced prompts with explicit composition requirements")
     else:
-        print("\n❌ CRITICAL ISSUE CONFIRMED: Gender selection feature is not working!")
-        print("   Either /api/options doesn't include gender options or /api/generate doesn't accept gender parameter.")
+        print("\n❌ CRITICAL ISSUE CONFIRMED: Suit composition feature has problems!")
+        print("   The French term detection or prompt generation is not working correctly.")
+        print("   This could affect the quality of generated images for suit compositions.")
     
-    if modify_success:
-        print("\n✅ IMAGE MODIFICATION FEATURE ALSO WORKING CORRECTLY!")
-        print("   ✅ /api/modify-image endpoint functional")
-        print("   ✅ Authentication requirement enforced")
-        print("   ✅ Proper validation for missing request_id")
-        print("   ✅ Proper validation for missing modification_description")
-        print("   ✅ Error handling for non-existent request_id")
-        print("   ✅ User credits properly decremented")
+    # Return based on the suit composition feature
+    if suit_success:
+        return 0  # Success - suit composition feature is working
     else:
-        print("\n❌ Image modification feature also has issues!")
-        print("   The /api/modify-image endpoint has problems with functionality or validation.")
-    
-    # Return based on the new features
-    if gender_success and modify_success:
-        return 0  # Success - both new features are working
-    else:
-        return 1  # Failure - one or both new features have issues
+        return 1  # Failure - suit composition feature has issues
 
 if __name__ == "__main__":
     sys.exit(main())
