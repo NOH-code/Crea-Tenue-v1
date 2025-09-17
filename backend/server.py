@@ -741,6 +741,7 @@ async def generate_outfit(
     pocket_type: str = Form(...),
     shoe_type: str = Form(...),
     accessory_type: str = Form(...),
+    gender: str = Form("homme"),  # New parameter with default
     fabric_description: Optional[str] = Form(None),
     custom_shoe_description: Optional[str] = Form(None),
     custom_accessory_description: Optional[str] = Form(None),
