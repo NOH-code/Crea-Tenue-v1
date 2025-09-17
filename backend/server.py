@@ -138,6 +138,7 @@ class OutfitRequest(BaseModel):
     pocket_type: str
     shoe_type: str
     accessory_type: str
+    gender: str = "homme"  # New field: "homme" or "femme"
     fabric_description: Optional[str] = None
     custom_shoe_description: Optional[str] = None
     custom_accessory_description: Optional[str] = None
@@ -152,6 +153,7 @@ class OutfitRequestCreate(BaseModel):
     pocket_type: str
     shoe_type: str
     accessory_type: str
+    gender: str = "homme"  # New field with default
     fabric_description: Optional[str] = None
     custom_shoe_description: Optional[str] = None
     custom_accessory_description: Optional[str] = None
