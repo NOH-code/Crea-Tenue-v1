@@ -6,10 +6,20 @@
         <meta name="theme-color" content="#000000" />
         <meta name="description" content="A product of emergent.sh" />
         
-        <!-- Local Bodoni Moda Font -->
+        <!-- Direct font test with system fonts -->
         
-        <!-- Inline font definition and application -->
+        <!-- Test with very different system font to confirm CSS works -->
         <style>
+            /* Test first with monospace to see if CSS priority works */
+            * {
+                font-family: 'Courier New', monospace !important;
+            }
+            
+            body, html, div, span, h1, h2, h3, h4, h5, h6, p, a, button, input, textarea, select, label, option {
+                font-family: 'Courier New', monospace !important;
+            }
+            
+            /* Then try with our Bodoni Moda */
             @font-face {
               font-family: 'BodoniModaLocal';
               font-style: normal;
@@ -18,18 +28,8 @@
               src: url('./bodoni-moda.ttf') format('truetype');
             }
             
-            /* Apply Bodoni Moda with highest priority */
-            * {
-                font-family: 'BodoniModaLocal', 'Times New Roman', serif !important;
-            }
-            
-            body, html, div, span, h1, h2, h3, h4, h5, h6, p, a, button, input, textarea, select, label, option {
-                font-family: 'BodoniModaLocal', 'Times New Roman', serif !important;
-            }
-            
-            /* Override any existing styles */
-            .font-sans, .font-serif {
-                font-family: 'BodoniModaLocal', 'Times New Roman', serif !important;
+            .use-bodoni * {
+                font-family: 'BodoniModaLocal', 'Courier New', monospace !important;
             }
         </style>
         
