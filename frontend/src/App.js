@@ -404,6 +404,83 @@ L'équipe Blandin & Delloye`
     }
   };
 
+  // Image modification functions
+  const openModificationDialog = (requestId) => {
+    setModificationRequestId(requestId);
+    setModificationDescription('');
+    setIsModificationDialogOpen(true);
+  };
+
+  const modifyImage = async () => {
+    if (!modificationDescription.trim()) {
+      toast.error("Veuillez décrire les modifications souhaitées");
+      return;
+    }
+
+    // Check user credits
+    if (user.images_used_total >= user.images_limit_total) {
+      toast.error(`Limite d'images atteinte (${user.images_used_total}/${user.images_limit_total})`);
+      return;
+    }
+
+    setIsModifying(true);
+
+    try {
+      const response = await axios.post(`${API}/modify-image`, {
+        request_id: modificationRequestId,
+        modification_description: modificationDescription
+      });
+
+      if (response.data.success) {
+        // Update generated images with the new modified image
+        const newImage = {
+          id: response.data.request_id,
+          filename: response.data.image_filename,
+          download_url: response.data.download_url,
+          details: {
+            ...formData,
+            modification_description: response.data.modification_description
+          }
+        };
+        setGeneratedImages(prev => [newImage, ...prev]);
+        
+        // Update user credits
+        setUser(prevUser => ({
+          ...prevUser,
+          images_used_total: response.data.user_credits.used
+        }));
+        
+        // Close dialog and show success
+        setIsModificationDialogOpen(false);
+        setModificationDescription('');
+        setModificationRequestId('');
+        
+        toast.success("Image modifiée avec succès !");
+        
+        // Refresh user requests if in admin view
+        if (currentView === 'admin' && user.role !== 'admin') {
+          fetchMyRequests();
+        }
+      } else {
+        toast.error("Erreur lors de la modification de l'image");
+      }
+    } catch (error) {
+      console.error('Modify image error:', error);
+      
+      // Handle authentication errors - auto logout
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        toast.error("Session expirée. Reconnexion nécessaire.");
+        handleLogout();
+        return;
+      }
+      
+      const errorMsg = error.response?.data?.detail || "Erreur lors de la modification de l'image";
+      toast.error(errorMsg);
+    } finally {
+      setIsModifying(false);
+    }
+  };
+
   // If not authenticated, show auth form
   if (!isAuthenticated) {
     return (
