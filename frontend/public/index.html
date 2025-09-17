@@ -7,17 +7,29 @@
         <meta name="description" content="A product of emergent.sh" />
         
         <!-- Local Bodoni Moda Font -->
-        <link rel="stylesheet" href="./bodoni-local.css">
         
-        <!-- Inline test to ensure local font loading -->
+        <!-- Inline font definition and application -->
         <style>
-            /* Force local Bodoni Moda everywhere */
-            * {
-                font-family: 'Bodoni Moda Local', Georgia, serif !important;
+            @font-face {
+              font-family: 'BodoniModaLocal';
+              font-style: normal;
+              font-weight: 400;
+              font-display: swap;
+              src: url('./bodoni-moda.ttf') format('truetype');
             }
             
-            body, html {
-                font-family: 'Bodoni Moda Local', Georgia, serif !important;
+            /* Apply Bodoni Moda with highest priority */
+            * {
+                font-family: 'BodoniModaLocal', 'Times New Roman', serif !important;
+            }
+            
+            body, html, div, span, h1, h2, h3, h4, h5, h6, p, a, button, input, textarea, select, label, option {
+                font-family: 'BodoniModaLocal', 'Times New Roman', serif !important;
+            }
+            
+            /* Override any existing styles */
+            .font-sans, .font-serif {
+                font-family: 'BodoniModaLocal', 'Times New Roman', serif !important;
             }
         </style>
         
