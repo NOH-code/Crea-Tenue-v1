@@ -695,7 +695,9 @@ ATMOSPHERE_LABELS = {
     "champetre": "Champêtre",
     "bord_de_mer": "Bord de Mer", 
     "elegant": "Elegant",
-    "very_bad_trip": "Very Bad Trip"
+    "very_bad_trip": "Very Bad Trip",
+    "rue_paris": "Dans la rue à Paris",
+    "rue_new_york": "Dans la rue à New York"
 }
 
 @api_router.get("/options")
