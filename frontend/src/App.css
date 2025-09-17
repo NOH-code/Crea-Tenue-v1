@@ -6,11 +6,20 @@
   box-sizing: border-box;
 }
 
+html {
+  font-family: 'Bodoni Moda', Georgia, serif !important;
+}
+
 body {
-  font-family: 'Bodoni Moda', Georgia, serif;
+  font-family: 'Bodoni Moda', Georgia, serif !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #f8fafc;
+}
+
+/* Force Bodoni Moda sur tous les éléments de texte */
+h1, h2, h3, h4, h5, h6, p, div, span, a, button, input, textarea, select, label {
+  font-family: 'Bodoni Moda', Georgia, serif !important;
 }
 
 /* Dark mode styles - Tous les textes en blanc pour lisibilité */
