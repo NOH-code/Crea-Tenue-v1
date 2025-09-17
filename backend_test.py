@@ -1904,6 +1904,21 @@ def main():
     
     tester = TailorViewAPITester()
     
+    # PRIORITY TESTS - User Email Tracking Fix
+    print("\n🆕 PRIORITY: USER EMAIL TRACKING FIX TESTING")
+    print("=" * 60)
+    
+    # Test the specific user email tracking fix
+    print("\n📋 TESTING USER EMAIL TRACKING FIX")
+    email_tracking_success, email_tracking_data = tester.test_user_email_tracking_fix()
+    
+    if not email_tracking_success:
+        print("\n❌ CRITICAL ISSUE FOUND: User email tracking fix is not working!")
+        print("   Admin dashboard will still show 'N/A' for user email.")
+    else:
+        print("\n✅ User email tracking fix working correctly!")
+        print("   Admin dashboard now shows user email instead of 'N/A'.")
+    
     # PRIORITY TESTS - User Management Functionality
     print("\n🆕 PRIORITY: USER MANAGEMENT FUNCTIONALITY TESTING")
     print("=" * 60)
