@@ -1106,6 +1106,7 @@ L'équipe Blandin & Delloye`
                   </CardContent>
                 </Card>
               </div>
+              </>
             )}
       </div>
       
