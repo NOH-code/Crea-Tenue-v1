@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Badge } from "./ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Users, Edit, Trash2, UserPlus, Shield, User, Crown } from "lucide-react";
+import { Users, Edit, Trash2, UserPlus, Shield, User, Crown, Download, Upload, FileDown, FileUp } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
 
