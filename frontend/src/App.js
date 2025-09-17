@@ -442,23 +442,25 @@ L'équipe Blandin & Delloye`
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
             
-            {/* Admin access */}
-            {user.role === 'admin' && (
-              <Button
-                variant="outline"
-                size="sm"
-                className={`p-2 w-10 h-10 ${isDarkMode ? 'border-green-800 text-white hover:bg-green-900 bg-slate-800' : 'border-gray-300'}`}
-                title="Administration"
-                onClick={() => {
-                  setCurrentView(currentView === 'admin' ? 'generator' : 'admin');
-                  if (currentView !== 'admin') {
+            {/* Administration access - available for all users */}
+            <Button
+              variant="outline"
+              size="sm"
+              className={`p-2 w-10 h-10 ${isDarkMode ? 'border-green-800 text-white hover:bg-green-900 bg-slate-800' : 'border-gray-300'}`}
+              title="Administration"
+              onClick={() => {
+                setCurrentView(currentView === 'admin' ? 'generator' : 'admin');
+                if (currentView !== 'admin') {
+                  if (user.role === 'admin') {
                     fetchAdminData();
+                  } else {
+                    fetchMyRequests();
                   }
-                }}
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
-            )}
+                }
+              }}
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
             
             {/* Logout */}
             <Button
