@@ -191,6 +191,24 @@ L'équipe Blandin & Delloye`
     }
   };
 
+  const fetchMyRequests = async () => {
+    try {
+      const response = await axios.get(`${API}/my-requests`);
+      setMyRequests(response.data);
+    } catch (error) {
+      console.error('Error fetching my requests:', error);
+      
+      // Handle authentication errors - auto logout
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        toast.error("Session expirée. Reconnexion nécessaire.");
+        handleLogout();
+        return;
+      }
+      
+      toast.error("Erreur lors du chargement de vos requêtes");
+    }
+  };
+
   const handleFileChange = (fileType, file) => {
     setFiles(prev => ({ ...prev, [fileType]: file }));
   };
