@@ -17,7 +17,7 @@ def test_send_multiple_endpoint():
     """Test send-multiple endpoint"""
     print("🔍 Testing Send Multiple Images Endpoint...")
     
-    base_url = "https://outfit-preview-43.preview.emergentagent.com"
+    base_url = "https://outfit-preview-48.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # First generate some images to get IDs

@@ -13,7 +13,7 @@ import json
 import time
 
 class FixedUserEmailTest:
-    def __init__(self, base_url="https://outfit-preview-43.preview.emergentagent.com"):
+    def __init__(self, base_url="https://outfit-preview-48.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.admin_token = None

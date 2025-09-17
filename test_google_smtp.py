@@ -16,7 +16,7 @@ def test_google_workspace_smtp():
     """Test Google Workspace SMTP with corrected configuration"""
     print("🔍 Testing Google Workspace SMTP with corrected configuration...")
     
-    base_url = "https://outfit-preview-43.preview.emergentagent.com"
+    base_url = "https://outfit-preview-48.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Create test image
