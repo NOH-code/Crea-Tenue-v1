@@ -682,7 +682,7 @@ L'équipe Blandin & Delloye`
                   <Button 
                     onClick={generateOutfit} 
                     disabled={isGenerating || !files.model_image || user.images_used_total >= user.images_limit_total}
-                    className="w-full"
+                    className={`w-full ${isDarkMode ? 'bg-green-700 hover:bg-green-600 text-white border-green-600' : ''}`}
                   >
                     {isGenerating ? (
                       <>
