@@ -231,14 +231,36 @@ const UserManagementTab = ({ isDarkMode, accessToken }) => {
           </p>
         </div>
         
-        <Button 
-          onClick={fetchUsers}
-          variant="outline"
-          className={isDarkMode ? 'border-slate-600 text-white hover:bg-slate-700' : ''}
-        >
-          <Users className="w-4 h-4 mr-2" />
-          Actualiser
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            onClick={fetchUsers}
+            variant="outline"
+            className={isDarkMode ? 'border-slate-600 text-white hover:bg-slate-700' : ''}
+          >
+            <Users className="w-4 h-4 mr-2" />
+            Actualiser
+          </Button>
+          
+          <Button 
+            onClick={() => exportUsers('csv')}
+            disabled={isExporting}
+            variant="outline"
+            className={isDarkMode ? 'border-slate-600 text-white hover:bg-slate-700' : ''}
+          >
+            <FileDown className="w-4 h-4 mr-2" />
+            {isExporting ? 'Export...' : 'Export CSV'}
+          </Button>
+          
+          <Button 
+            onClick={() => exportUsers('json')}
+            disabled={isExporting}
+            variant="outline"
+            className={isDarkMode ? 'border-slate-600 text-white hover:bg-slate-700' : ''}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            {isExporting ? 'Export...' : 'Export JSON'}
+          </Button>
+        </div>
       </div>
 
       <Card className={isDarkMode ? 'bg-slate-800 border-slate-700' : ''}>
