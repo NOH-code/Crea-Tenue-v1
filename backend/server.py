@@ -784,6 +784,7 @@ async def generate_outfit(
             pocket_type=pocket_type,  
             shoe_type=shoe_type,
             accessory_type=accessory_type,
+            gender=gender,  # Add the new gender parameter
             fabric_description=fabric_description,
             custom_shoe_description=custom_shoe_description,
             custom_accessory_description=custom_accessory_description,
