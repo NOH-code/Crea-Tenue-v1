@@ -60,6 +60,9 @@ function App() {
   const [adminRequests, setAdminRequests] = useState([]);
   const [adminStats, setAdminStats] = useState({});
   
+  // User's own requests state  
+  const [myRequests, setMyRequests] = useState([]);
+  
   // Email template state
   const [emailTemplate, setEmailTemplate] = useState({
     subject: 'Votre Visualisation de Tenue de Marié Personnalisée',
