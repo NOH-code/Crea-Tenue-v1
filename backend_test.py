@@ -2746,31 +2746,55 @@ class TailorViewAPITester:
             return False, {}
 
 def main():
-    print("🚀 SUIT COMPOSITION FEATURE TESTING - FRENCH TERMS (2 pièces vs 3 pièces)")
-    print("🎯 PRIORITY: Testing IMPROVED Suit Composition Detection with French Terms")
+    print("🚀 COSTUME 2 PIÈCES 'SANS GILET' SPECIFICATION TESTING")
+    print("🎯 PRIORITY: Testing IMPROVED Prompt for 'Costume 2 pièces' with explicit 'SANS GILET' specification")
     print("=" * 80)
-    print("🔍 Testing: 'Costume 2 pièces' detection and prompt generation")
-    print("🔍 Testing: 'Costume 3 pièces' detection and prompt generation")
-    print("🔍 Testing: French suit composition logic in backend")
-    print("✅ Verification that prompts include proper composition instructions")
+    print("🔍 FOCUS: Verify 'Costume 2 pièces' generates correct prompt with enhanced 'sans gilet' specifications")
+    print("🔍 Testing: Backend generates correct prompt with explicit French terms about no vest")
+    print("🔍 Testing: Suit composition logic includes explicit French terms about no vest")
+    print("✅ Verification: Prompt explicitly mentions 'NO gilet whatsoever'")
+    print("✅ Verification: French terminology clear about absence of vest")
     print("=" * 80)
     
     tester = TailorViewAPITester()
     
-    # SUIT COMPOSITION FEATURE TEST - Priority for this review
-    print("\n🆕 PRIORITY: SUIT COMPOSITION FEATURE TESTING")
-    print("=" * 60)
+    # SPECIFIC TEST FOR "COSTUME 2 PIÈCES" WITH "SANS GILET" - Priority for this review
+    print("\n🆕 PRIORITY: 'COSTUME 2 PIÈCES' SANS GILET SPECIFICATION TESTING")
+    print("=" * 70)
     
-    # Test Suit Composition Feature
-    print("\n📋 TESTING IMPROVED SUIT COMPOSITION FEATURE")
+    # Test specific "Costume 2 pièces" with SANS GILET specification
+    print("\n📋 TESTING SPECIFIC 'COSTUME 2 PIÈCES' SANS GILET SPECIFICATION")
+    sans_gilet_success, sans_gilet_data = tester.test_costume_2_pieces_sans_gilet_specification()
+    
+    if not sans_gilet_success:
+        print("\n❌ CRITICAL ISSUE FOUND: 'Costume 2 pièces' SANS GILET specification is not working correctly!")
+        print("   The enhanced prompt may not include explicit 'SANS GILET' specifications.")
+        print("   French terminology about no vest may be missing or insufficient.")
+    else:
+        print("\n✅ 'Costume 2 pièces' SANS GILET specification working correctly!")
+        print("   Enhanced prompt includes explicit 'SANS GILET' specifications.")
+        print("   French terminology is clear about the absence of vest.")
+    
+    # Test prompt enhancement verification
+    print("\n📋 TESTING PROMPT ENHANCEMENT VERIFICATION")
+    prompt_success, prompt_data = tester.test_prompt_enhancement_verification()
+    
+    if not prompt_success:
+        print("\n❌ ISSUE FOUND: Prompt enhancement verification failed!")
+        print("   The backend may not be using the enhanced prompt specifications.")
+    else:
+        print("\n✅ Prompt enhancement verification successful!")
+        print("   Backend is using the improved prompt with SANS GILET specifications.")
+    
+    # Test general suit composition feature for completeness
+    print("\n📋 TESTING GENERAL SUIT COMPOSITION FEATURE")
     suit_success, suit_data = tester.test_suit_composition_feature()
     
     if not suit_success:
-        print("\n❌ CRITICAL ISSUE FOUND: Suit composition feature is not working correctly!")
+        print("\n❌ ISSUE FOUND: General suit composition feature has issues!")
         print("   French terms '2 pièces' and '3 pièces' may not be properly detected.")
-        print("   Prompt generation may not include proper composition instructions.")
     else:
-        print("\n✅ Suit composition feature working correctly!")
+        print("\n✅ General suit composition feature working correctly!")
         print("   French terms are properly detected and prompts include detailed instructions.")
     
     # Additional basic API tests to ensure system is functional
