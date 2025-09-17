@@ -2426,39 +2426,35 @@ def main():
     
     tester = TailorViewAPITester()
     
-    # PRIORITY TESTS - User Email Tracking Fix
-    print("\n🆕 PRIORITY: USER EMAIL TRACKING FIX TESTING")
+    # NEW FEATURES TESTS - Priority for this review
+    print("\n🆕 PRIORITY: NEW FEATURES TESTING")
     print("=" * 60)
     
-    # Test the specific user email tracking fix
-    print("\n📋 TESTING USER EMAIL TRACKING FIX")
-    email_tracking_success, email_tracking_data = tester.test_user_email_tracking_fix()
+    # Test Gender Selection Feature
+    print("\n📋 TESTING GENDER SELECTION FEATURE")
+    gender_success, gender_data = tester.test_gender_selection_feature()
     
-    if not email_tracking_success:
-        print("\n❌ CRITICAL ISSUE FOUND: User email tracking fix is not working!")
-        print("   Admin dashboard will still show 'N/A' for user email.")
+    if not gender_success:
+        print("\n❌ CRITICAL ISSUE FOUND: Gender selection feature is not working!")
+        print("   /api/options may not include gender options or /api/generate may not accept gender parameter.")
     else:
-        print("\n✅ User email tracking fix working correctly!")
-        print("   Admin dashboard now shows user email instead of 'N/A'.")
+        print("\n✅ Gender selection feature working correctly!")
+        print("   Both /api/options and /api/generate endpoints support gender selection.")
     
-    # PRIORITY TESTS - User Management Functionality
-    print("\n🆕 PRIORITY: USER MANAGEMENT FUNCTIONALITY TESTING")
-    print("=" * 60)
+    # Test Image Modification Feature
+    print("\n📋 TESTING IMAGE MODIFICATION FEATURE")
+    modify_success, modify_data = tester.test_image_modification_feature()
     
-    # Test the specific user management issue reported
-    print("\n📋 TESTING USER MANAGEMENT UPDATE FUNCTIONALITY")
-    user_mgmt_success, user_mgmt_data = tester.test_user_management_update_limits()
-    
-    if not user_mgmt_success:
-        print("\n❌ CRITICAL ISSUE FOUND: User management update functionality is failing!")
-        print("   This matches the user's reported issue with updating image limits.")
+    if not modify_success:
+        print("\n❌ CRITICAL ISSUE FOUND: Image modification feature is not working!")
+        print("   /api/modify-image endpoint may have issues with authentication or validation.")
     else:
-        print("\n✅ User management update functionality working correctly!")
+        print("\n✅ Image modification feature working correctly!")
+        print("   /api/modify-image endpoint working with proper authentication and validation.")
     
     # Additional authentication system tests
-    print("\n📋 TESTING COMPLETE AUTHENTICATION SYSTEM")
+    print("\n📋 TESTING AUTHENTICATION SYSTEM (Supporting Tests)")
     auth_success, auth_data = tester.test_authentication_system_comprehensive()
-    
     
     # Summary of all tests
     print("\n" + "=" * 80)
@@ -2466,8 +2462,8 @@ def main():
     print("=" * 80)
     
     all_tests = [
-        ("User Email Tracking Fix", email_tracking_success),
-        ("User Management Update", user_mgmt_success),
+        ("Gender Selection Feature", gender_success),
+        ("Image Modification Feature", modify_success),
         ("Authentication System", auth_success)
     ]
     
@@ -2481,35 +2477,34 @@ def main():
     print(f"\n📊 Overall Test Results: {total_passed}/{total_tests} major test suites passed")
     print(f"📈 Individual API Tests: {tester.tests_passed}/{tester.tests_run} passed")
     
-    if email_tracking_success:
-        print("\n🎉 USER EMAIL TRACKING FIX WORKING CORRECTLY!")
-        print("   ✅ Admin dashboard shows user email instead of 'N/A'")
-        print("   ✅ user_email field populated with creator's email")
-        print("   ✅ Clear distinction between creator and recipient emails")
-        print("   ✅ Older requests handled gracefully")
-        print("\n🎯 CONCLUSION: The reported issue with 'N/A' user emails is RESOLVED!")
+    if gender_success:
+        print("\n🎉 GENDER SELECTION FEATURE WORKING CORRECTLY!")
+        print("   ✅ /api/options endpoint includes gender options (homme/femme)")
+        print("   ✅ /api/generate endpoint accepts gender parameter")
+        print("   ✅ Both 'homme' and 'femme' options working")
+        print("   ✅ Default gender behavior working (defaults to 'homme')")
+        print("\n🎯 CONCLUSION: Gender selection feature is fully operational!")
     else:
-        print("\n❌ CRITICAL ISSUE CONFIRMED: User email tracking fix is not working!")
-        print("   Admin dashboard will still show 'N/A' for user email.")
-        print("   The user_email field is not being populated in /api/generate endpoint.")
+        print("\n❌ CRITICAL ISSUE CONFIRMED: Gender selection feature is not working!")
+        print("   Either /api/options doesn't include gender options or /api/generate doesn't accept gender parameter.")
     
-    if user_mgmt_success:
-        print("\n✅ USER MANAGEMENT FUNCTIONALITY ALSO WORKING CORRECTLY!")
-        print("   ✅ Admin can list all users")
-        print("   ✅ Admin can update user image limits")
-        print("   ✅ Admin can update user image usage counts")
-        print("   ✅ Admin can update multiple user fields")
-        print("   ✅ Error handling works for non-existent users")
-        print("   ✅ Email-based user identification works as fallback")
+    if modify_success:
+        print("\n✅ IMAGE MODIFICATION FEATURE ALSO WORKING CORRECTLY!")
+        print("   ✅ /api/modify-image endpoint functional")
+        print("   ✅ Authentication requirement enforced")
+        print("   ✅ Proper validation for missing request_id")
+        print("   ✅ Proper validation for missing modification_description")
+        print("   ✅ Error handling for non-existent request_id")
+        print("   ✅ User credits properly decremented")
     else:
-        print("\n❌ User management update functionality also has issues!")
-        print("   The PUT /api/admin/users/{user_id} endpoint has problems.")
+        print("\n❌ Image modification feature also has issues!")
+        print("   The /api/modify-image endpoint has problems with functionality or validation.")
     
-    # Return based on the priority fix
-    if email_tracking_success:
-        return 0  # Success - the main issue is resolved
+    # Return based on the new features
+    if gender_success and modify_success:
+        return 0  # Success - both new features are working
     else:
-        return 1  # Failure - the main issue is not resolved
+        return 1  # Failure - one or both new features have issues
 
 if __name__ == "__main__":
     sys.exit(main())
