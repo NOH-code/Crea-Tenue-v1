@@ -3078,65 +3078,47 @@ Test User,nonadmin@example.com,client"""
             return False, {}
 
 def main():
-    print("🚀 COSTUME 2 PIÈCES 'SANS GILET' SPECIFICATION TESTING")
-    print("🎯 PRIORITY: Testing IMPROVED Prompt for 'Costume 2 pièces' with explicit 'SANS GILET' specification")
+    print("🚀 USER EXPORT/IMPORT FUNCTIONALITY TESTING")
+    print("🎯 FOCUS: Testing NEW export/import functionality for users")
     print("=" * 80)
-    print("🔍 FOCUS: Verify 'Costume 2 pièces' generates correct prompt with enhanced 'sans gilet' specifications")
-    print("🔍 Testing: Backend generates correct prompt with explicit French terms about no vest")
-    print("🔍 Testing: Suit composition logic includes explicit French terms about no vest")
-    print("✅ Verification: Prompt explicitly mentions 'NO gilet whatsoever'")
-    print("✅ Verification: French terminology clear about absence of vest")
+    print("🔍 TESTING: Export CSV endpoint (/api/admin/users/export?format=csv)")
+    print("🔍 TESTING: Export JSON endpoint (/api/admin/users/export?format=json)")
+    print("🔍 TESTING: Import validation (/api/admin/users/import) with valid data")
+    print("🔍 TESTING: Import error handling with invalid data/duplicate emails")
+    print("🔍 TESTING: Admin-only access control for both export and import")
+    print("🔍 TESTING: Password handling (hashed) and data integrity")
     print("=" * 80)
     
     tester = TailorViewAPITester()
     
-    # SPECIFIC TEST FOR "COSTUME 2 PIÈCES" WITH "SANS GILET" - Priority for this review
-    print("\n🆕 PRIORITY: 'COSTUME 2 PIÈCES' SANS GILET SPECIFICATION TESTING")
+    # SPECIFIC TEST FOR USER EXPORT/IMPORT FUNCTIONALITY - Priority for this review
+    print("\n🆕 PRIORITY: USER EXPORT/IMPORT FUNCTIONALITY TESTING")
     print("=" * 70)
     
-    # Test specific "Costume 2 pièces" with SANS GILET specification
-    print("\n📋 TESTING SPECIFIC 'COSTUME 2 PIÈCES' SANS GILET SPECIFICATION")
-    sans_gilet_success, sans_gilet_data = tester.test_costume_2_pieces_sans_gilet_specification()
+    # Test the new export/import functionality
+    print("\n📋 TESTING USER EXPORT/IMPORT FUNCTIONALITY")
+    export_import_success, export_import_data = tester.test_user_export_import_functionality()
     
-    if not sans_gilet_success:
-        print("\n❌ CRITICAL ISSUE FOUND: 'Costume 2 pièces' SANS GILET specification is not working correctly!")
-        print("   The enhanced prompt may not include explicit 'SANS GILET' specifications.")
-        print("   French terminology about no vest may be missing or insufficient.")
+    if not export_import_success:
+        print("\n❌ CRITICAL ISSUE FOUND: User export/import functionality is not working correctly!")
+        print("   Export endpoints may not return proper CSV/JSON files")
+        print("   Import may not validate data or handle duplicates properly")
+        print("   Authentication may not be properly enforced (admin only)")
     else:
-        print("\n✅ 'Costume 2 pièces' SANS GILET specification working correctly!")
-        print("   Enhanced prompt includes explicit 'SANS GILET' specifications.")
-        print("   French terminology is clear about the absence of vest.")
-    
-    # Test prompt enhancement verification
-    print("\n📋 TESTING PROMPT ENHANCEMENT VERIFICATION")
-    prompt_success, prompt_data = tester.test_prompt_enhancement_verification()
-    
-    if not prompt_success:
-        print("\n❌ ISSUE FOUND: Prompt enhancement verification failed!")
-        print("   The backend may not be using the enhanced prompt specifications.")
-    else:
-        print("\n✅ Prompt enhancement verification successful!")
-        print("   Backend is using the improved prompt with SANS GILET specifications.")
-    
-    # Test general suit composition feature for completeness
-    print("\n📋 TESTING GENERAL SUIT COMPOSITION FEATURE")
-    suit_success, suit_data = tester.test_suit_composition_feature()
-    
-    if not suit_success:
-        print("\n❌ ISSUE FOUND: General suit composition feature has issues!")
-        print("   French terms '2 pièces' and '3 pièces' may not be properly detected.")
-    else:
-        print("\n✅ General suit composition feature working correctly!")
-        print("   French terms are properly detected and prompts include detailed instructions.")
+        print("\n✅ User export/import functionality working correctly!")
+        print("   Export endpoints return proper CSV/JSON files with user data")
+        print("   Import validates data and handles duplicates gracefully")
+        print("   Authentication properly enforced (admin only)")
+        print("   Password handling is secure (hashed)")
     
     # Additional basic API tests to ensure system is functional
     print("\n📋 BASIC API FUNCTIONALITY TESTS")
     
-    # Test options endpoint
-    options_success, options_data = tester.test_options_endpoint()
-    
     # Test admin login for authentication
     admin_success, admin_data = tester.test_admin_login()
+    
+    # Test options endpoint to verify system is running
+    options_success, options_data = tester.test_options_endpoint()
     
     # Summary of all tests
     print("\n" + "=" * 80)
@@ -3144,11 +3126,9 @@ def main():
     print("=" * 80)
     
     all_tests = [
-        ("'Costume 2 pièces' SANS GILET Specification", sans_gilet_success),
-        ("Prompt Enhancement Verification", prompt_success),
-        ("General Suit Composition Feature", suit_success),
-        ("Options Endpoint", options_success),
-        ("Admin Authentication", admin_success)
+        ("User Export/Import Functionality", export_import_success),
+        ("Admin Authentication", admin_success),
+        ("Options Endpoint", options_success)
     ]
     
     total_passed = sum(1 for _, success in all_tests if success)
@@ -3161,37 +3141,39 @@ def main():
     print(f"\n📊 Overall Test Results: {total_passed}/{total_tests} major test suites passed")
     print(f"📈 Individual API Tests: {tester.tests_passed}/{tester.tests_run} passed")
     
-    if sans_gilet_success and prompt_success:
-        print("\n🎉 'COSTUME 2 PIÈCES' SANS GILET SPECIFICATION WORKING CORRECTLY!")
-        print("   ✅ 'Costume 2 pièces' generates enhanced prompt with explicit 'SANS GILET' specification")
-        print("   ✅ Backend correctly includes 'NO gilet whatsoever' in prompt")
-        print("   ✅ French terminology is clear about the absence of vest")
-        print("   ✅ Enhanced prompt includes detailed 2-piece suit requirements")
-        print("   ✅ Prompt explicitly mentions 'SANS GILET (without vest) is mandatory'")
-        print("\n🎯 CONCLUSION: The improved prompt for 'Costume 2 pièces' with explicit 'SANS GILET' specification is fully operational!")
+    if export_import_success:
+        print("\n🎉 USER EXPORT/IMPORT FUNCTIONALITY WORKING CORRECTLY!")
+        print("   ✅ Export CSV endpoint returns proper CSV files with user data")
+        print("   ✅ Export JSON endpoint returns proper JSON files with user data")
+        print("   ✅ Import validates data and creates users successfully")
+        print("   ✅ Import handles duplicate emails gracefully")
+        print("   ✅ Import handles invalid data with proper error messages")
+        print("   ✅ Authentication properly enforced (admin only access)")
+        print("   ✅ Password handling is secure (hashed in database)")
+        print("   ✅ Data includes: nom, email, role, images_used_total, images_limit_total, is_active")
+        print("\n🎯 CONCLUSION: The new export/import functionality for users is fully operational!")
         print("\n📝 VERIFICATION DETAILS:")
-        print("   • Backend logic detects '2 pièces' in 'Costume 2 pièces' correctly")
-        print("   • Enhanced prompt includes: 'EXACTLY 2 pieces: jacket and trousers ONLY'")
-        print("   • Enhanced prompt includes: 'NO vest, NO waistcoat, NO third piece visible'")
-        print("   • Enhanced prompt includes: 'SANS GILET (without vest) is mandatory'")
-        print("   • Enhanced prompt includes: 'NO gilet whatsoever'")
-        print("   • Enhanced prompt includes: 'ABSOLUTELY NO vest or waistcoat or gilet layer'")
-        print("   • French and English specifications are both present for clarity")
+        print("   • CSV export includes all required user fields with proper headers")
+        print("   • JSON export returns structured data with all user information")
+        print("   • Import validation prevents duplicate emails and invalid data")
+        print("   • Error handling provides clear feedback for import issues")
+        print("   • Admin authentication required for both export and import operations")
+        print("   • Passwords are properly hashed when importing users")
+        print("   • User data integrity maintained throughout export/import process")
     else:
-        print("\n❌ CRITICAL ISSUE CONFIRMED: 'Costume 2 pièces' SANS GILET specification has problems!")
-        print("   The enhanced prompt may not include explicit 'SANS GILET' specifications.")
-        print("   This could affect the quality of generated 2-piece suit images.")
+        print("\n❌ CRITICAL ISSUE CONFIRMED: User export/import functionality has problems!")
+        print("   Export endpoints may not be working correctly")
+        print("   Import functionality may have validation or security issues")
+        print("   This could affect data backup and user management capabilities")
         
-        if not sans_gilet_success:
-            print("   ❌ Specific 'Costume 2 pièces' SANS GILET test failed")
-        if not prompt_success:
-            print("   ❌ Prompt enhancement verification failed")
+        if not export_import_success:
+            print("   ❌ Export/Import functionality test failed")
     
-    # Return based on the specific SANS GILET specification tests
-    if sans_gilet_success and prompt_success:
-        return 0  # Success - SANS GILET specification is working
+    # Return based on the export/import functionality tests
+    if export_import_success:
+        return 0  # Success - Export/Import functionality is working
     else:
-        return 1  # Failure - SANS GILET specification has issues
+        return 1  # Failure - Export/Import functionality has issues
 
 if __name__ == "__main__":
     sys.exit(main())
