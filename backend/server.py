@@ -52,13 +52,8 @@ class UserRole(str):
 
 class UserCreate(BaseModel):
     nom: str
-    prenom: str
-    titre: str  # "Monsieur" ou "Madame"
     email: EmailStr
     password: str
-    date_evenement: Optional[str] = None
-    accept_communications: bool
-    role: Optional[str] = UserRole.CLIENT
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -67,24 +62,23 @@ class UserLogin(BaseModel):
 class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     nom: str
-    prenom: str
-    titre: str
     email: EmailStr
     role: str = UserRole.CLIENT
-    date_evenement: Optional[str] = None
-    accept_communications: bool = False
-    is_verified: bool = False
-    images_used_today: int = 0
     images_used_total: int = 0
-    images_limit_total: int = 10  # Limite pour les clients
-    last_image_date: Optional[str] = None
+    images_limit_total: int = 5  # Limite par défaut de 5 images
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    is_active: bool = True
     verification_token: Optional[str] = None
+    is_verified: bool = True  # Default to True for simplicity
+    
+    class Config:
+        extra = "ignore"  # Ignore extra fields from database
 
 class UserUpdate(BaseModel):
     role: Optional[str] = None
     images_limit_total: Optional[int] = None
     images_used_total: Optional[int] = None
+    is_active: Optional[bool] = None
 
 # Password utilities
 def hash_password(password: str) -> str:
@@ -171,42 +165,44 @@ class GenerationStatus(BaseModel):
 
 # Configuration for outfit options
 ATMOSPHERE_OPTIONS = {
-    "rustic": "mixing flowers and wood, with a beautiful floral arch in the background, bright ambiance",
-    "seaside": "coastal, with the sea in the background; the ceremony takes place on a beach, with carpets on the sand and chairs for guests",
-    "chic_elegant": "in a renovated castle, the wedding ceremony takes place in a hall resembling the Hall of Mirrors at Versailles",
-    "hangover": "like in the movie The Hangover, the wedding happens on the Las Vegas Strip; a small improvised ceremony. The scene shows signs of a big party the night before: bottles, cans, trash, people sleeping, and a messy environment"
+    "champetre": "dans une grange rustique avec des poutres en bois apparent et de la paille au sol. L'ambiance est champêtre avec des décorations de mariage rustiques",
+    "bord_de_mer": "sur une plage au coucher du soleil. Le sable fin et les vagues créent une ambiance maritime romantique",
+    "elegant": "dans un château rénové, la cérémonie se déroule dans une salle qui ressemble à la Galerie des Glaces de Versailles",
+    "very_bad_trip": "comme dans le film Very Bad Trip, le mariage se déroule sur le Las Vegas Strip ; une petite cérémonie improvisée. La scène montre des signes de grande fête la nuit précédente : bouteilles, canettes, déchets, personnes endormies et environnement en désordre",
+    "rue_paris": "la photo est prise dans la rue à Paris",
+    "rue_new_york": "la photo est prise dans la rue à New York"
 }
 
-SUIT_TYPES = ["2-piece suit", "3-piece suit"]
+SUIT_TYPES = ["Costume 2 pièces", "Costume 3 pièces"]
 
 LAPEL_TYPES = [
-    "Standard notch lapel",
-    "Wide notch lapel", 
-    "Standard peak lapel",
-    "Wide peak lapel",
-    "Shawl collar with satin lapel",
-    "Standard double-breasted peak lapel",
-    "Wide double-breasted peak lapel"
+    "Revers cran droit standard",
+    "Revers cran droit large", 
+    "Revers cran aigu standard",
+    "Revers cran aigu large",
+    "Col châle avec revers satin",
+    "Veste croisée cran aigu standard",
+    "Veste croisée cran aigu large"
 ]
 
 POCKET_TYPES = [
-    "Slanted, no flaps",
-    "Slanted with flaps", 
-    "Straight with flaps",
-    "Straight, no flaps",
-    "Patch pockets"
+    "En biais, sans rabat",
+    "En biais avec rabat", 
+    "Droites avec rabat",
+    "Droites, sans rabat",
+    "Poches plaquées"
 ]
 
 SHOE_TYPES = [
-    "Black loafers",
-    "Brown loafers",
-    "Black one-cut", 
-    "Brown one-cut",
-    "White sneakers",
-    "Custom"
+    "Mocassins noirs",
+    "Mocassins marrons",
+    "Richelieu noires", 
+    "Richelieu marrons",
+    "Baskets blanches",
+    "Description texte"
 ]
 
-ACCESSORY_TYPES = ["Bow tie", "Tie", "Custom"]
+ACCESSORY_TYPES = ["Nœud papillon", "Cravate", "Description texte"]
 
 async def apply_watermark(image_data: bytes) -> bytes:
     """Apply watermark to generated image"""
@@ -555,14 +551,14 @@ L'équipe Blandin & Delloye"""
         )
         msg.attach(part)
         
-        # Try different SMTP configurations
+        # Try different SMTP configurations - Google Workspace Gmail SMTP first (most reliable)
         smtp_configs = [
-            # Original Infomaniak config
+            # Primary: Google Workspace Gmail SMTP with App Password (STARTTLS)
             {'server': smtp_server, 'port': smtp_port, 'email': sender_email, 'password': sender_password},
-            # Gmail fallback (if different credentials exist)
-            {'server': 'smtp.gmail.com', 'port': 587, 'email': sender_email, 'password': sender_password},
-            # Alternative Infomaniak config
-            {'server': 'mail.infomaniak.com', 'port': 465, 'email': sender_email, 'password': sender_password}
+            # Fallback 1: Gmail SMTP with SSL
+            {'server': 'smtp.gmail.com', 'port': 465, 'email': sender_email, 'password': sender_password},
+            # Fallback 2: Infomaniak SMTP (original)
+            {'server': 'mail.infomaniak.com', 'port': 587, 'email': sender_email, 'password': sender_password}
         ]
         
         for config in smtp_configs:
@@ -633,124 +629,9 @@ async def save_email_to_queue(email: str, outfit_details: dict, image_data: byte
     except Exception as e:
         logger.error(f"Error saving email to queue: {e}")
 
-# API Routes - Authentication
-@api_router.post("/auth/register")
-async def register_user(user_data: UserCreate, background_tasks: BackgroundTasks):
-    """Register a new user"""
-    try:
-        # Validate password
-        if not validate_password(user_data.password):
-            raise HTTPException(
-                status_code=400, 
-                detail="Password must be at least 8 characters with at least 1 digit and 1 letter"
-            )
-        
-        # Check if user already exists
-        existing_user = await db.users.find_one({"email": user_data.email})
-        if existing_user:
-            raise HTTPException(status_code=400, detail="Email already registered")
-        
-        # Create verification token
-        verification_token = str(uuid.uuid4())
-        
-        # Hash password and create user
-        hashed_password = hash_password(user_data.password)
-        user = User(
-            **user_data.dict(exclude={"password"}),
-            verification_token=verification_token
-        )
-        
-        # Store user with hashed password
-        user_dict = user.dict()
-        user_dict["password"] = hashed_password
-        
-        await db.users.insert_one(user_dict)
-        
-        # Send verification email
-        background_tasks.add_task(
-            send_verification_email, 
-            user_data.email, 
-            user_data.prenom, 
-            verification_token
-        )
-        
-        return {
-            "success": True,
-            "message": "Account created! Please check your email to verify your account."
-        }
-        
-    except Exception as e:
-        logger.error(f"Registration error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+# API Routes - Authentication (removed duplicate endpoints)
 
-@api_router.get("/auth/verify/{token}")
-async def verify_email(token: str):
-    """Verify user email"""
-    try:
-        user = await db.users.find_one({"verification_token": token})
-        if not user:
-            raise HTTPException(status_code=400, detail="Invalid verification token")
-        
-        # Update user as verified
-        await db.users.update_one(
-            {"verification_token": token},
-            {"$set": {"is_verified": True, "verification_token": None}}
-        )
-        
-        return {"success": True, "message": "Email verified successfully!"}
-        
-    except Exception as e:
-        logger.error(f"Verification error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@api_router.post("/auth/login")
-async def login_user(user_data: UserLogin):
-    """Login user"""
-    try:
-        # Find user
-        user = await db.users.find_one({"email": user_data.email})
-        if not user:
-            raise HTTPException(status_code=401, detail="Invalid email or password")
-        
-        # Verify password
-        if not verify_password(user_data.password, user["password"]):
-            raise HTTPException(status_code=401, detail="Invalid email or password")
-        
-        # Check if email is verified
-        if not user.get("is_verified", False):
-            raise HTTPException(status_code=401, detail="Please verify your email first")
-        
-        # Update daily image counter if needed
-        today = datetime.now(timezone.utc).date().isoformat()
-        if user.get("last_image_date") != today:
-            await db.users.update_one(
-                {"email": user_data.email},
-                {"$set": {"images_used_today": 0, "last_image_date": today}}
-            )
-            user["images_used_today"] = 0
-        
-        # Create JWT token
-        token_data = {"email": user["email"], "role": user["role"]}
-        access_token = create_access_token(token_data)
-        
-        # Return user info and token
-        user_response = User(**user)
-        return {
-            "access_token": access_token,
-            "token_type": "bearer",
-            "user": user_response.dict(exclude={"verification_token"})
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Login error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@api_router.get("/auth/me")
-async def get_current_user_info(current_user: User = Depends(get_current_user)):
-    """Get current user information"""
-    return current_user.dict(exclude={"verification_token"})
+# Removed duplicate get_current_user_info endpoint
 
 @api_router.post("/auth/create-user")
 async def create_user_by_admin(
@@ -807,35 +688,21 @@ async def get_all_users(current_user: User = Depends(get_admin_user)):
     users = await db.users.find({}, {"password": 0, "verification_token": 0}).to_list(1000)
     return [User(**user).dict() for user in users]
 
-@api_router.put("/admin/users/{user_email}")
-async def update_user(
-    user_email: str, 
-    user_update: UserUpdate,
-    current_user: User = Depends(get_admin_user)
-):
-    """Update user (admin only)"""
-    try:
-        update_data = {k: v for k, v in user_update.dict().items() if v is not None}
-        
-        result = await db.users.update_one(
-            {"email": user_email},
-            {"$set": update_data}
-        )
-        
-        if result.matched_count == 0:
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        return {"success": True, "message": "User updated successfully"}
-        
-    except Exception as e:
-        logger.error(f"User update error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+# Removed duplicate endpoint - using the more comprehensive one below
+
+# Affichage des labels en français
+ATMOSPHERE_LABELS = {
+    "champetre": "Champêtre",
+    "bord_de_mer": "Bord de Mer", 
+    "elegant": "Elegant",
+    "very_bad_trip": "Very Bad Trip"
+}
 
 @api_router.get("/options")
 async def get_options():
     """Get all available customization options"""
     return {
-        "atmospheres": list(ATMOSPHERE_OPTIONS.keys()),
+        "atmospheres": [{"value": key, "label": ATMOSPHERE_LABELS[key]} for key in ATMOSPHERE_OPTIONS.keys()],
         "suit_types": SUIT_TYPES,
         "lapel_types": LAPEL_TYPES,
         "pocket_types": POCKET_TYPES,
@@ -858,11 +725,18 @@ async def generate_outfit(
     fabric_description: Optional[str] = Form(None),
     custom_shoe_description: Optional[str] = Form(None),
     custom_accessory_description: Optional[str] = Form(None),
-    email: Optional[str] = Form(None)
+    email: Optional[str] = Form(None),
+    current_user: User = Depends(get_current_user)
 ):
-    """Generate groom outfit visualization"""
+    """Generate groom outfit visualization (requires authentication)"""
     
     try:
+        # Check if user has remaining image generation credits
+        if current_user.images_used_total >= current_user.images_limit_total:
+            raise HTTPException(
+                status_code=403, 
+                detail=f"Image generation limit exceeded. Used: {current_user.images_used_total}/{current_user.images_limit_total}"
+            )
         # Validate file types
         if not model_image.content_type.startswith('image/'):
             raise HTTPException(status_code=400, detail="Model file must be an image")
@@ -911,24 +785,27 @@ async def generate_outfit(
         async with aiofiles.open(image_path, 'wb') as f:
             await f.write(generated_image)
         
-        # Send email if requested
-        email_sent = False
-        email_message = ""
-        if email:
-            email_sent = await send_email_with_image(email, generated_image, outfit_request.dict())
-            if email_sent:
-                email_message = f"Email envoyé avec succès à {email}"
-            else:
-                email_message = f"Demande d'email enregistrée pour {email}. L'image sera envoyée manuellement par notre équipe sous 24h."
+        # Increment user's image usage count
+        await db.users.update_one(
+            {"id": current_user.id},
+            {"$inc": {"images_used_total": 1}}
+        )
+        
+        # Get updated user info for response
+        updated_user_data = await db.users.find_one({"id": current_user.id})
+        updated_user = User(**updated_user_data)
         
         return {
             "success": True,
             "request_id": outfit_record.id,
             "image_filename": image_filename,
             "download_url": f"/api/download/{image_filename}",
-            "email_sent": email_sent,
-            "email_message": email_message,
-            "message": "Outfit generated successfully!"
+            "message": "Outfit generated successfully!",
+            "user_credits": {
+                "used": updated_user.images_used_total,
+                "limit": updated_user.images_limit_total,
+                "remaining": updated_user.images_limit_total - updated_user.images_used_total
+            }
         }
         
     except HTTPException:
@@ -1107,6 +984,183 @@ async def get_requests():
     requests = await db.outfit_requests.find().sort("timestamp", -1).to_list(1000)
     return [OutfitRequest(**request) for request in requests]
 
+# Authentication endpoints
+@api_router.post("/auth/register")
+async def register_user(user_data: UserCreate):
+    """Register a new user"""
+    try:
+        # Check if user already exists
+        existing_user = await db.users.find_one({"email": user_data.email})
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
+        # Validate password
+        if not validate_password(user_data.password):
+            raise HTTPException(status_code=400, detail="Password must be at least 8 characters with 1 digit and 1 letter")
+        
+        # Create new user
+        user = User(
+            nom=user_data.nom,
+            email=user_data.email,
+            role=UserRole.CLIENT,
+            images_limit_total=5  # Default limit
+        )
+        
+        user_dict = user.dict()
+        user_dict["password"] = hash_password(user_data.password)
+        
+        await db.users.insert_one(user_dict)
+        
+        # Create access token
+        access_token = create_access_token({"email": user.email, "role": user.role})
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": user.dict()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error registering user: {e}")
+        raise HTTPException(status_code=500, detail="Registration failed")
+
+@api_router.post("/auth/login")
+async def login_user(login_data: UserLogin):
+    """Login user"""
+    try:
+        # Find user
+        user_data = await db.users.find_one({"email": login_data.email})
+        if not user_data:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+        
+        # Check if user is active
+        if not user_data.get("is_active", True):
+            raise HTTPException(status_code=401, detail="Account deactivated")
+        
+        # Verify password
+        if not bcrypt.checkpw(login_data.password.encode('utf-8'), user_data["password"].encode('utf-8')):
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+        
+        # Create access token
+        access_token = create_access_token({"email": user_data["email"], "role": user_data["role"]})
+        
+        # Convert to User model for response
+        user = User(**user_data)
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user": user.dict()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error during login: {e}")
+        raise HTTPException(status_code=500, detail="Login failed")
+
+@api_router.get("/auth/me")
+async def get_current_user_info(current_user: User = Depends(get_current_user)):
+    """Get current user information"""
+    return current_user.dict()
+
+# User management endpoints (admin only)
+@api_router.get("/admin/users", response_model=List[User])
+async def get_all_users(admin_user: User = Depends(get_admin_user)):
+    """Get all users (admin only)"""
+    users = await db.users.find().sort("created_at", -1).to_list(1000)
+    return [User(**user) for user in users]
+
+@api_router.put("/admin/users/{user_id}")
+async def update_user(user_id: str, user_update: UserUpdate, admin_user: User = Depends(get_admin_user)):
+    """Update user (admin only)"""
+    try:
+        logger.info(f"=== USER UPDATE START ===")
+        logger.info(f"Attempting to update user with ID: {user_id}")
+        logger.info(f"Update request: {user_update.dict()}")
+        
+        # Find user by id field
+        logger.info(f"Searching for user by id field...")
+        user_data = await db.users.find_one({"id": user_id})
+        if not user_data:
+            logger.info(f"User not found by id, trying email fallback...")
+            # Try finding by email as fallback (in case user_id is email)
+            user_data = await db.users.find_one({"email": user_id})
+            if not user_data:
+                logger.warning(f"User not found with ID: {user_id}")
+                raise HTTPException(status_code=404, detail="User not found")
+            else:
+                logger.info(f"User found by email fallback")
+        else:
+            logger.info(f"User found by id field")
+        
+        logger.info(f"Found user: {user_data.get('email', 'N/A')} (id: {user_data.get('id', 'N/A')})")
+        
+        # Prepare update data
+        update_data = {}
+        if user_update.role is not None:
+            update_data["role"] = user_update.role
+        if user_update.images_limit_total is not None:
+            update_data["images_limit_total"] = user_update.images_limit_total
+        if user_update.images_used_total is not None:
+            update_data["images_used_total"] = user_update.images_used_total
+        if user_update.is_active is not None:
+            update_data["is_active"] = user_update.is_active
+        
+        logger.info(f"Update data prepared: {update_data}")
+        
+        # Update user using the same identifier that found the user
+        query = {"id": user_data["id"]} if "id" in user_data else {"email": user_data["email"]}
+        logger.info(f"Update query: {query}")
+        
+        result = await db.users.update_one(query, {"$set": update_data})
+        logger.info(f"Update result: matched={result.matched_count}, modified={result.modified_count}")
+        
+        if result.matched_count == 0:
+            logger.error(f"Update failed: no documents matched query {query}")
+            raise HTTPException(status_code=404, detail="User not found during update")
+        
+        # Get updated user
+        logger.info(f"Retrieving updated user data...")
+        updated_user_data = await db.users.find_one(query)
+        if not updated_user_data:
+            logger.error(f"Could not retrieve updated user with query {query}")
+            raise HTTPException(status_code=500, detail="Could not retrieve updated user")
+        
+        logger.info(f"Creating User model from updated data...")
+        updated_user = User(**updated_user_data)
+        logger.info(f"User model created successfully")
+        
+        result_dict = updated_user.dict()
+        logger.info(f"=== USER UPDATE SUCCESS ===")
+        return result_dict
+        
+    except HTTPException as he:
+        logger.error(f"HTTP Exception in user update: {he.detail}")
+        logger.error(f"=== USER UPDATE FAILED (HTTP) ===")
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error updating user: {e}")
+        logger.error(f"Error type: {type(e).__name__}")
+        logger.error(f"=== USER UPDATE FAILED (EXCEPTION) ===")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/admin/users/{user_id}")
+async def delete_user(user_id: str, admin_user: User = Depends(get_admin_user)):
+    """Delete user (admin only)"""
+    try:
+        result = await db.users.delete_one({"id": user_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="User not found")
+        return {"message": "User deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting user: {e}")
+        raise HTTPException(status_code=500, detail="User deletion failed")
+
 # Include router in main app
 app.include_router(api_router)
 
@@ -1136,13 +1190,10 @@ async def startup_event():
         if not existing_admin:
             # Create default admin
             admin_user = User(
-                nom="Delloye",
-                prenom="Charles", 
-                titre="Monsieur",
+                nom="Charles Delloye",
                 email=admin_email,
                 role=UserRole.ADMIN,
-                accept_communications=True,
-                is_verified=True
+                images_limit_total=999  # Unlimited for admin
             )
             
             admin_dict = admin_user.dict()
