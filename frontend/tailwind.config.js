@@ -7,6 +7,11 @@ module.exports = {
   ],
   theme: {
   	extend: {
+  		fontFamily: {
+  			'sans': ['Bodoni Moda', 'Georgia', 'serif'],
+  			'serif': ['Bodoni Moda', 'Georgia', 'serif'],
+  			'bodoni': ['Bodoni Moda', 'Georgia', 'serif']
+  		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
