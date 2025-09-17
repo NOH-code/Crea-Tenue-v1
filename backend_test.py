@@ -13,6 +13,9 @@ class TailorViewAPITester:
         self.api_url = f"{base_url}/api"
         self.tests_run = 0
         self.tests_passed = 0
+        self.auth_token = None
+        self.admin_token = None
+        self.test_user_data = None
 
     def run_test(self, name, method, endpoint, expected_status, data=None, files=None, auth_token=None):
         """Run a single API test"""
