@@ -1008,8 +1008,9 @@ L'équipe Blandin & Delloye`
             )}
               </>
             ) : (
-              {/* User's own requests view */}
-              <div className="space-y-6">
+              <>
+                {/* User's own requests view */}
+                <div className="space-y-6">
                 <Card className={isDarkMode ? 'bg-slate-800 border-slate-700' : ''}>
                   <CardHeader>
                     <div className="flex justify-between items-center">
