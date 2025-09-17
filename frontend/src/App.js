@@ -472,7 +472,7 @@ L'équipe Blandin & Delloye`
                       type="file"
                       accept="image/*"
                       onChange={(e) => handleFileChange('model_image', e.target.files[0])}
-                      className={isDarkMode ? 'bg-slate-800 text-white border-green-800' : ''}
+                      className={isDarkMode ? 'bg-slate-800 text-white border-green-800 file:bg-green-700 file:text-white file:border-0 file:rounded file:px-3 file:py-1 file:mr-3 hover:file:bg-green-600' : 'file:bg-gray-100 file:text-gray-700 file:border-0 file:rounded file:px-3 file:py-1 file:mr-3'}
                     />
                   </div>
 
