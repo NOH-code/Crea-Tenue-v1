@@ -1233,6 +1233,60 @@ L'équipe Blandin & Delloye`
         )}
       </div>
       
+      {/* Image Modification Dialog */}
+      <Dialog open={isModificationDialogOpen} onOpenChange={setIsModificationDialogOpen}>
+        <DialogContent className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white'}`}>
+          <DialogHeader>
+            <DialogTitle className={isDarkMode ? 'text-white' : ''}>
+              Modifier l'image
+            </DialogTitle>
+            <DialogDescription className={isDarkMode ? 'text-slate-300' : ''}>
+              Décrivez les modifications que vous souhaitez apporter à cette image.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className={isDarkMode ? 'text-white' : ''}>
+                Description des modifications
+              </Label>
+              <Textarea
+                value={modificationDescription}
+                onChange={(e) => setModificationDescription(e.target.value)}
+                placeholder="Ex: Changer la couleur du costume en bleu marine, remplacer les mocassins par des richelieu noirs..."
+                rows={4}
+                className={isDarkMode ? 'bg-slate-700 text-white border-slate-600 placeholder:text-slate-400' : ''}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsModificationDialogOpen(false)}
+                className={isDarkMode ? 'border-slate-600 text-white hover:bg-slate-700' : ''}
+              >
+                Annuler
+              </Button>
+              <Button
+                onClick={modifyImage}
+                disabled={isModifying || !modificationDescription.trim()}
+                className={isDarkMode ? 'bg-green-700 hover:bg-green-600' : ''}
+              >
+                {isModifying ? (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                    Modification...
+                  </>
+                ) : (
+                  <>
+                    <Palette className="w-4 h-4 mr-2" />
+                    Modifier l'image
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
       <Toaster position="top-right" />
     </div>
   );
