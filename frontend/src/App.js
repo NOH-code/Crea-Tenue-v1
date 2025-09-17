@@ -883,6 +883,15 @@ L'équipe Blandin & Delloye`
                                 <Button
                                   size="sm"
                                   variant="outline"
+                                  onClick={() => openModificationDialog(image.id)}
+                                  className={`${isDarkMode ? 'border-green-800 text-green-300 hover:bg-green-900' : 'border-gray-300'}`}
+                                  title="Modifier cette image"
+                                >
+                                  <Palette className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
                                   onClick={() => sendSingleImage(image.id)}
                                   className={`${isDarkMode ? 'border-green-800 text-green-300 hover:bg-green-900' : 'border-gray-300'}`}
                                   title="Envoyer cette image par email"
