@@ -318,9 +318,37 @@ metadata:
   test_sequence: 2
   run_ui: false
 
+  - task: "Gender Selection Feature"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ GENDER SELECTION FEATURE FULLY OPERATIONAL! Comprehensive testing completed: ✅ /api/options endpoint includes gender options with correct structure [{'value': 'homme', 'label': 'Homme'}, {'value': 'femme', 'label': 'Femme'}] ✅ /api/generate endpoint accepts gender parameter successfully ✅ Both 'homme' and 'femme' values working correctly ✅ Default gender behavior working (defaults to 'homme') ✅ Gender parameter properly integrated into AI prompt generation. CONCLUSION: Gender selection feature is completely functional and ready for production use."
+
+  - task: "Image Modification Feature"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL ISSUE IDENTIFIED: /api/modify-image endpoint returning 404 'Not Found' for all requests. Root cause found: endpoint was defined AFTER app.include_router(api_router) line in server.py, preventing proper registration with FastAPI router."
+      - working: true
+        agent: "testing"
+        comment: "✅ IMAGE MODIFICATION FEATURE FULLY OPERATIONAL! CRITICAL FIX APPLIED: Moved /api/modify-image endpoint definition before app.include_router() to ensure proper registration. Comprehensive testing completed: ✅ /api/modify-image endpoint accessible and functional ✅ Authentication requirement enforced (returns 403 for unauthenticated requests) ✅ Successfully generates original image and modifies it ✅ Proper validation for missing request_id and modification_description ✅ Error handling for non-existent request_id ✅ User credits properly decremented ✅ New request_id generated for modified image ✅ Modification description stored in response. CONCLUSION: Image modification feature is completely functional with proper authentication, validation, and error handling."
+
 test_plan:
   current_focus:
-    - "User email tracking fix in admin dashboard"
+    - "Gender Selection Feature"
+    - "Image Modification Feature"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -352,3 +380,5 @@ agent_communication:
     message: "🚨 URGENT IMAGE GENERATION FAILURE DIAGNOSIS COMPLETE! ROOT CAUSE IDENTIFIED AND FIXED: The user's reported 401 Unauthorized errors were caused by a JWT library bug in the backend code. The error 'AttributeError: module jwt has no attribute JWTError' was causing 500 errors instead of proper 401 responses when invalid tokens were used. CRITICAL FINDINGS: ✅ Admin login working perfectly (charles@blandindelloye.com / 114956Xp) ✅ JWT token generation and validation working ✅ Authentication system fully operational ✅ Image generation working perfectly WITH authentication ✅ New atmosphere options (rue_paris, rue_new_york) working correctly ✅ All backend endpoints functional ✅ Email functionality operational ❌ FIXED: JWT error handling bug (changed jwt.JWTError to jwt.InvalidTokenError) DIAGNOSIS: The image generation is NOT crashing - it requires proper authentication. Users must login first to get a valid JWT token, then use that token for image generation. The 401 errors were correct behavior, but the JWT bug was causing confusion. SOLUTION IMPLEMENTED: Fixed JWT error handling in backend/server.py. System now properly returns 401 for invalid tokens instead of 500 errors. IMAGE GENERATION FULLY OPERATIONAL with proper authentication."
   - agent: "testing"
     message: "🎉 USER EMAIL TRACKING FIX SUCCESSFULLY IMPLEMENTED AND TESTED! ISSUE ANALYSIS: The original fix code (outfit_record.user_email = current_user.email) was correct but never executed because database save happened AFTER image generation. When Gemini API failed due to quota limits, database save was never reached. SOLUTION: Moved database save BEFORE image generation in /api/generate endpoint. COMPREHENSIVE TESTING RESULTS: ✅ Created test request that successfully populated user_email='charles@blandindelloye.com' ✅ Clear field distinction: user_email (creator) vs email (recipient) ✅ Database structure supports user_email field correctly ✅ Fix works even when image generation fails ✅ Admin dashboard will now show user emails instead of 'N/A' for all new requests. VERIFICATION: Out of 51 total requests, 1 new request has populated user_email (after fix), 50 old requests still have None (before fix). The reported admin dashboard 'N/A' issue is COMPLETELY RESOLVED for all future outfit generations."
+  - agent: "testing"
+    message: "🎉 NEW FEATURES TESTING COMPLETE - BOTH FEATURES FULLY OPERATIONAL! GENDER SELECTION FEATURE: ✅ /api/options endpoint includes gender options correctly [{'value': 'homme', 'label': 'Homme'}, {'value': 'femme', 'label': 'Femme'}] ✅ /api/generate endpoint accepts gender parameter successfully ✅ Both 'homme' and 'femme' values working ✅ Default gender behavior working. IMAGE MODIFICATION FEATURE: ✅ CRITICAL FIX APPLIED: Moved /api/modify-image endpoint before router registration ✅ /api/modify-image endpoint now accessible and functional ✅ Authentication requirement enforced ✅ Successfully generates and modifies images ✅ Proper validation and error handling ✅ User credits decremented correctly. CONCLUSION: Both requested new features are completely operational and ready for production use. The image modification endpoint registration issue has been resolved."
