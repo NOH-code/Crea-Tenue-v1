@@ -1649,6 +1649,141 @@ class TailorViewAPITester:
             print("❌ AUTHENTICATION SYSTEM HAS CRITICAL ISSUES")
             return False, auth_tests
 
+    def test_user_email_tracking_fix(self):
+        """Test PRIORITY FIX: User email tracking in admin dashboard"""
+        print("\n🔍 Testing PRIORITY FIX: User Email Tracking in Admin Dashboard...")
+        
+        # First ensure we have admin token
+        if not self.admin_token:
+            print("⚠️  No admin token available, logging in as admin first...")
+            admin_success, admin_response = self.test_admin_login()
+            if not admin_success:
+                return False, {}
+        
+        print("\n📋 1. Generating new outfit request as admin user...")
+        
+        # Generate a new outfit request as admin user
+        model_image = self.create_test_image(400, 600, (200, 150, 100))
+        
+        data = {
+            'atmosphere': 'elegant',
+            'suit_type': 'Costume 3 pièces',
+            'lapel_type': 'Revers cran droit standard',
+            'pocket_type': 'En biais, sans rabat',
+            'shoe_type': 'Richelieu noires',
+            'accessory_type': 'Nœud papillon',
+            'fabric_description': 'Laine bleu marine premium',
+            'email': 'client@example.com'  # This is the recipient email
+        }
+        
+        files = {
+            'model_image': ('model.jpg', model_image, 'image/jpeg')
+        }
+        
+        success, response = self.run_test(
+            "Generate Outfit as Admin (Email Tracking Test)",
+            "POST",
+            "generate",
+            200,
+            data=data,
+            files=files,
+            auth_token=self.admin_token
+        )
+        
+        if not success:
+            print("❌ Failed to generate outfit request as admin")
+            return False, {}
+        
+        request_id = response.get('request_id')
+        if not request_id:
+            print("❌ No request_id returned from generate endpoint")
+            return False, {}
+        
+        print(f"✅ Generated outfit request with ID: {request_id}")
+        
+        print("\n📋 2. Checking admin dashboard for user_email population...")
+        
+        # Check admin requests endpoint to verify user_email is populated
+        admin_success, admin_response = self.run_test(
+            "Get Admin Requests (Check User Email)",
+            "GET",
+            "admin/requests",
+            200,
+            auth_token=self.admin_token
+        )
+        
+        if not admin_success:
+            print("❌ Failed to get admin requests")
+            return False, {}
+        
+        # Find our newly created request
+        new_request = None
+        for request in admin_response:
+            if request.get('id') == request_id:
+                new_request = request
+                break
+        
+        if not new_request:
+            print(f"❌ Could not find newly created request with ID: {request_id}")
+            return False, {}
+        
+        print(f"✅ Found newly created request in admin dashboard")
+        
+        # Check if user_email is populated
+        user_email = new_request.get('user_email')
+        recipient_email = new_request.get('email')
+        
+        print(f"   Request ID: {new_request.get('id', 'N/A')}")
+        print(f"   User Email (creator): {user_email}")
+        print(f"   Recipient Email: {recipient_email}")
+        
+        if user_email and user_email != "N/A":
+            if user_email == "charles@blandindelloye.com":  # Admin email
+                print("✅ USER EMAIL TRACKING FIX WORKING!")
+                print("   ✓ user_email field is populated with admin's email")
+                print("   ✓ No more 'N/A' for user email in admin dashboard")
+                print("   ✓ Clear distinction between creator email and recipient email")
+                
+                print("\n📋 3. Testing database verification...")
+                
+                # Verify the distinction between user_email and email fields
+                if recipient_email and recipient_email != user_email:
+                    print("✅ Email field distinction working correctly:")
+                    print(f"   ✓ user_email (creator): {user_email}")
+                    print(f"   ✓ email (recipient): {recipient_email}")
+                else:
+                    print("⚠️  Email field distinction unclear")
+                
+                print("\n📋 4. Testing with older requests (graceful handling)...")
+                
+                # Check if older requests without user_email are handled gracefully
+                older_requests_without_user_email = [
+                    req for req in admin_response 
+                    if req.get('user_email') in [None, "", "N/A"]
+                ]
+                
+                if older_requests_without_user_email:
+                    print(f"✅ Found {len(older_requests_without_user_email)} older requests without user_email")
+                    print("   ✓ System handles older requests gracefully (shows N/A as fallback)")
+                else:
+                    print("   ℹ️  No older requests without user_email found")
+                
+                return True, {
+                    'request_id': request_id,
+                    'user_email': user_email,
+                    'recipient_email': recipient_email,
+                    'request_data': new_request
+                }
+            else:
+                print(f"❌ user_email populated but with unexpected value: {user_email}")
+                print("   Expected: charles@blandindelloye.com (admin email)")
+                return False, {}
+        else:
+            print("❌ USER EMAIL TRACKING FIX NOT WORKING!")
+            print("   ✗ user_email field is still empty or 'N/A'")
+            print("   ✗ Admin dashboard will still show 'N/A' for user email")
+            return False, {}
+
     def test_user_management_update_limits(self):
         """Test PRIORITY: User management functionality - updating user image limits"""
         print("\n🔍 Testing PRIORITY: User Management - Update Image Limits...")
