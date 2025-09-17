@@ -2812,7 +2812,9 @@ def main():
     print("=" * 80)
     
     all_tests = [
-        ("Suit Composition Feature (French Terms)", suit_success),
+        ("'Costume 2 pièces' SANS GILET Specification", sans_gilet_success),
+        ("Prompt Enhancement Verification", prompt_success),
+        ("General Suit Composition Feature", suit_success),
         ("Options Endpoint", options_success),
         ("Admin Authentication", admin_success)
     ]
@@ -2827,29 +2829,37 @@ def main():
     print(f"\n📊 Overall Test Results: {total_passed}/{total_tests} major test suites passed")
     print(f"📈 Individual API Tests: {tester.tests_passed}/{tester.tests_run} passed")
     
-    if suit_success:
-        print("\n🎉 SUIT COMPOSITION FEATURE WORKING CORRECTLY!")
-        print("   ✅ 'Costume 2 pièces' generates proper 2-piece instructions (NO vest)")
-        print("   ✅ 'Costume 3 pièces' generates proper 3-piece instructions (WITH vest)")
-        print("   ✅ French terms correctly detected in backend logic")
-        print("   ✅ Prompt generation includes detailed composition requirements")
-        print("   ✅ Options endpoint includes French suit types")
-        print("\n🎯 CONCLUSION: Suit composition feature with French terms is fully operational!")
+    if sans_gilet_success and prompt_success:
+        print("\n🎉 'COSTUME 2 PIÈCES' SANS GILET SPECIFICATION WORKING CORRECTLY!")
+        print("   ✅ 'Costume 2 pièces' generates enhanced prompt with explicit 'SANS GILET' specification")
+        print("   ✅ Backend correctly includes 'NO gilet whatsoever' in prompt")
+        print("   ✅ French terminology is clear about the absence of vest")
+        print("   ✅ Enhanced prompt includes detailed 2-piece suit requirements")
+        print("   ✅ Prompt explicitly mentions 'SANS GILET (without vest) is mandatory'")
+        print("\n🎯 CONCLUSION: The improved prompt for 'Costume 2 pièces' with explicit 'SANS GILET' specification is fully operational!")
         print("\n📝 VERIFICATION DETAILS:")
-        print("   • Backend logic uses '2 pièces' and '3 pièces' for detection (not English terms)")
-        print("   • 2-piece suits: Detailed instructions to show NO vest/waistcoat")
-        print("   • 3-piece suits: Detailed instructions to show vest/waistcoat MUST be visible")
-        print("   • Enhanced prompts with explicit composition requirements")
+        print("   • Backend logic detects '2 pièces' in 'Costume 2 pièces' correctly")
+        print("   • Enhanced prompt includes: 'EXACTLY 2 pieces: jacket and trousers ONLY'")
+        print("   • Enhanced prompt includes: 'NO vest, NO waistcoat, NO third piece visible'")
+        print("   • Enhanced prompt includes: 'SANS GILET (without vest) is mandatory'")
+        print("   • Enhanced prompt includes: 'NO gilet whatsoever'")
+        print("   • Enhanced prompt includes: 'ABSOLUTELY NO vest or waistcoat or gilet layer'")
+        print("   • French and English specifications are both present for clarity")
     else:
-        print("\n❌ CRITICAL ISSUE CONFIRMED: Suit composition feature has problems!")
-        print("   The French term detection or prompt generation is not working correctly.")
-        print("   This could affect the quality of generated images for suit compositions.")
+        print("\n❌ CRITICAL ISSUE CONFIRMED: 'Costume 2 pièces' SANS GILET specification has problems!")
+        print("   The enhanced prompt may not include explicit 'SANS GILET' specifications.")
+        print("   This could affect the quality of generated 2-piece suit images.")
+        
+        if not sans_gilet_success:
+            print("   ❌ Specific 'Costume 2 pièces' SANS GILET test failed")
+        if not prompt_success:
+            print("   ❌ Prompt enhancement verification failed")
     
-    # Return based on the suit composition feature
-    if suit_success:
-        return 0  # Success - suit composition feature is working
+    # Return based on the specific SANS GILET specification tests
+    if sans_gilet_success and prompt_success:
+        return 0  # Success - SANS GILET specification is working
     else:
-        return 1  # Failure - suit composition feature has issues
+        return 1  # Failure - SANS GILET specification has issues
 
 if __name__ == "__main__":
     sys.exit(main())
