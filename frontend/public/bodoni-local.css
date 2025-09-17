@@ -1,0 +1,20 @@
+@font-face {
+  font-family: 'Bodoni Moda Local';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./bodoni-moda.ttf') format('truetype');
+}
+
+/* Apply locally hosted Bodoni Moda */
+* {
+  font-family: 'Bodoni Moda Local', Georgia, serif !important;
+}
+
+body, html {
+  font-family: 'Bodoni Moda Local', Georgia, serif !important;
+}
+
+h1, h2, h3, h4, h5, h6, p, div, span, a, button, input, textarea, select, label {
+  font-family: 'Bodoni Moda Local', Georgia, serif !important;
+}
