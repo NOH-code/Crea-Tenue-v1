@@ -1183,28 +1183,6 @@ async def delete_user(user_id: str, admin_user: User = Depends(get_admin_user)):
         logger.error(f"Error deleting user: {e}")
         raise HTTPException(status_code=500, detail="User deletion failed")
 
-# Include router in main app
-app.include_router(api_router)
-
-# User's own requests endpoint (for all authenticated users)
-@api_router.get("/my-requests", response_model=List[OutfitRequest])
-async def get_my_requests(current_user: User = Depends(get_current_user)):
-    """Get current user's own outfit requests"""
-    try:
-        my_requests = await db.outfit_requests.find(
-            {"user_email": current_user.email}
-        ).sort("timestamp", -1).to_list(1000)
-        return [OutfitRequest(**request) for request in my_requests]
-    except Exception as e:
-        logger.error(f"Error fetching user requests: {e}")
-        raise HTTPException(status_code=500, detail="Could not fetch your requests")
-
-@api_router.get("/user/requests")
-async def get_user_requests(current_user: User = Depends(get_current_user)):
-    """Get requests for the current user"""
-    requests = await db.outfit_requests.find({"user_email": current_user.email}).sort("timestamp", -1).to_list(1000)
-    return [OutfitRequest(**request) for request in requests]
-
 # New endpoint for image modification
 class ImageModificationRequest(BaseModel):
     request_id: str
@@ -1379,6 +1357,28 @@ Generate the modified wedding image with only the requested changes, keeping eve
     except Exception as e:
         logger.error(f"Error modifying outfit image: {e}")
         raise HTTPException(status_code=500, detail=f"Image modification failed: {str(e)}")
+
+# Include router in main app
+app.include_router(api_router)
+
+# User's own requests endpoint (for all authenticated users)
+@api_router.get("/my-requests", response_model=List[OutfitRequest])
+async def get_my_requests(current_user: User = Depends(get_current_user)):
+    """Get current user's own outfit requests"""
+    try:
+        my_requests = await db.outfit_requests.find(
+            {"user_email": current_user.email}
+        ).sort("timestamp", -1).to_list(1000)
+        return [OutfitRequest(**request) for request in my_requests]
+    except Exception as e:
+        logger.error(f"Error fetching user requests: {e}")
+        raise HTTPException(status_code=500, detail="Could not fetch your requests")
+
+@api_router.get("/user/requests")
+async def get_user_requests(current_user: User = Depends(get_current_user)):
+    """Get requests for the current user"""
+    requests = await db.outfit_requests.find({"user_email": current_user.email}).sort("timestamp", -1).to_list(1000)
+    return [OutfitRequest(**request) for request in requests]
 
 app.add_middleware(
     CORSMiddleware,
