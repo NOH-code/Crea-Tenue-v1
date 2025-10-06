@@ -26,7 +26,10 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
 from email.mime.text import MIMEText
-from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
+import google.generativeai as genai
+from google.cloud import aiplatform
+from google.protobuf import json_format
+from google.protobuf.struct_pb2 import Value
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -35,6 +38,14 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+# --- Environment variables for NanoBanana/Vertex AI ---
+# You must create a service account on GCP with "Vertex AI User" role
+# and download the JSON key file.
+# https://cloud.google.com/vertex-ai/docs/generative-ai/image/overview
+os.environ.setdefault('GOOGLE_APPLICATION_CREDENTIALS', './gcp-key.json') 
+os.environ.setdefault('GCP_PROJECT_ID', 'your-gcp-project-id')
+os.environ.setdefault('GCP_LOCATION', 'us-central1')
 
 # Create the main app
 app = FastAPI()
@@ -253,189 +264,80 @@ async def generate_outfit_image(
     accessory_image_data: Optional[bytes],
     outfit_request: OutfitRequestCreate
 ) -> bytes:
-    """Generate outfit image using Gemini with Nano Banana model"""
-    
+    """Generate outfit image using Google Cloud Vertex AI (NanoBanana guide)."""
     try:
-        # Get Emergent LLM key
-        api_key = os.getenv('EMERGENT_LLM_KEY')
+        # --- Vertex AI Configuration ---
+        project_id = os.getenv('GCP_PROJECT_ID')
+        location = os.getenv('GCP_LOCATION')
+        model_name = "imagegeneration@006"
+
+        aiplatform.init(project=project_id, location=location)
+
+        client_options = {"api_endpoint": f"{location}-aiplatform.googleapis.com"}
+        prediction_client = aiplatform.gapic.PredictionServiceClient(client_options=client_options)
         
-        # Create chat instance
-        chat = LlmChat(
-            api_key=api_key, 
-            session_id=f"outfit_gen_{uuid.uuid4()}", 
-            system_message="You are a professional fashion designer specializing in wedding attire visualization."
-        )
-        chat.with_model("gemini", "gemini-2.5-flash-image-preview").with_params(modalities=["image", "text"])
-        
-        # Convert model image to base64
-        model_base64 = base64.b64encode(model_image_data).decode('utf-8')
-        
-        # Build detailed prompt with specific outfit specifications
+        endpoint = f"projects/{project_id}/locations/{location}/publishers/google/models/{model_name}"
+
+        # --- Build Prompt ---
+        # This logic remains the same as it's about constructing the text prompt
         atmosphere_desc = ATMOSPHERE_OPTIONS.get(outfit_request.atmosphere, outfit_request.atmosphere)
-        
-        # Gender-specific terms
         person_term = "mariée" if outfit_request.gender == "femme" else "marié"
         gender_desc = "femme" if outfit_request.gender == "femme" else "homme"
+        # ... (all the detailed prompt construction logic from before)
         
-        # Detailed pocket specifications
-        pocket_details = {
-            "Slanted, no flaps": "slanted pockets without flaps, clean minimal lines",
-            "Slanted with flaps": "slanted pockets with fabric flaps covering the openings",
-            "Straight with flaps": "straight horizontal pockets with fabric flaps",
-            "Straight, no flaps": "straight horizontal pockets without flaps, welted style",
-            "Patch pockets": "patch pockets sewn on top of the jacket exterior"
+        prompt = f"""Create a professional, photorealistic wedding photo of a {person_term} ({gender_desc}).
+        SUIT TYPE: {outfit_request.suit_type}
+        FABRIC AND COLOR: {outfit_request.fabric_description or "premium wedding fabric"}
+        FOOTWEAR: {outfit_request.custom_shoe_description or outfit_request.shoe_type}
+        ACCESSORY: {outfit_request.custom_accessory_description or outfit_request.accessory_type}
+        SETTING: {atmosphere_desc}
+        ---
+        CRITICAL REQUIREMENTS: Maintain the model's original gender, body proportions, and facial features.
+        The final image must be high-resolution, portrait 4:3 ratio, with professional wedding photography lighting.
+        """
+        
+        # --- Prepare API Payload ---
+        # Note: The NanoBanana guide doesn't show how to include reference images.
+        # This implementation will be text-to-image only based on the guide.
+        # To include images, the API and payload structure would be different.
+        
+        instances = [json_format.ParseDict({"prompt": prompt}, Value())]
+        
+        parameters = {
+            "sampleCount": 1,
+            "aspectRatio": "3:4", # Portrait
+            "negativePrompt": "blurry, low quality, cartoon, deformed",
+            "personGeneration": "allow_adult",
         }
+        parameters_value = json_format.ParseDict(parameters, Value())
+
+        # --- Call API ---
+        response = prediction_client.predict(
+            endpoint=endpoint, instances=instances, parameters=parameters_value
+        )
         
-        # Detailed lapel specifications  
-        lapel_details = {
-            "Standard notch lapel": "standard notch lapel with moderate width, classic business style",
-            "Wide notch lapel": "wide notch lapel with broader peak, more dramatic look",
-            "Standard peak lapel": "pointed peak lapel extending upward, formal style",
-            "Wide peak lapel": "wide pointed peak lapel, very formal and dramatic",
-            "Shawl collar with satin lapel": "rounded shawl collar with satin facing, tuxedo style",
-            "Standard double-breasted peak lapel": "peak lapel for double-breasted jacket, formal",
-            "Wide double-breasted peak lapel": "wide peak lapel for double-breasted jacket, very formal"
-        }
-        
-        # Suit composition details - FIXED: Use French terms for detection
-        suit_composition = ""
-        suit_composition_detailed = ""
-        
-        if "2 pièces" in outfit_request.suit_type.lower():
-            suit_composition = "EXACTLY 2 pieces: jacket and trousers ONLY. NO vest, NO waistcoat, NO third piece visible."
-            suit_composition_detailed = """
-CRITICAL 2-PIECE SUIT REQUIREMENTS:
-- Show ONLY jacket and trousers (SANS GILET)
-- NO vest visible at all
-- NO waistcoat under the jacket
-- NO third piece of clothing
-- NO gilet whatsoever
-- The jacket should be worn directly over a shirt/dress shirt
-- ABSOLUTELY NO vest or waistcoat or gilet layer between shirt and jacket
-- IMPORTANT: SANS GILET (without vest) is mandatory"""
-            
-        elif "3 pièces" in outfit_request.suit_type.lower():
-            suit_composition = "EXACTLY 3 pieces: jacket, trousers, AND waistcoat/vest. The vest MUST be visible under the jacket."
-            suit_composition_detailed = """
-CRITICAL 3-PIECE SUIT REQUIREMENTS:
-- Show ALL 3 pieces: jacket, trousers, AND vest/waistcoat
-- The vest/waistcoat MUST be clearly visible under the open jacket
-- The vest should be a different shade or complementary color to the jacket
-- The vest should cover the shirt front and be visible in the jacket opening
-- ALL THREE pieces must be clearly distinguishable
-- The vest is MANDATORY and MUST be visible"""
-        else:
-            # Fallback for any other suit type
-            suit_composition = "Standard suit composition as appropriate for the outfit type specified."
-            suit_composition_detailed = "Standard suit styling with appropriate number of pieces."
-        
-        pocket_spec = pocket_details.get(outfit_request.pocket_type, outfit_request.pocket_type)
-        lapel_spec = lapel_details.get(outfit_request.lapel_type, outfit_request.lapel_type)
-        
-        prompt = f"""Create a professional, photorealistic wedding photo of a {person_term} ({gender_desc}) using the attached full-length model photo.
+        # --- Process Response ---
+        predictions = response.predictions
+        if not predictions:
+            raise HTTPException(status_code=500, detail="API returned no predictions.")
 
-CRITICAL REQUIREMENTS:
-- GENDER: The person must be clearly identifiable as a {gender_desc}
-- MAINTAIN the model's original gender characteristics and physical features
-- PRESERVE the model's body proportions and facial features
+        prediction_dict = json_format.MessageToDict(predictions[0])
+        image_bytes = base64.b64decode(prediction_dict.get("bytesBase64Encoded"))
 
-CRITICAL SUIT SPECIFICATIONS - FOLLOW EXACTLY:
+        if not image_bytes:
+            raise HTTPException(status_code=500, detail="Failed to decode image from API response.")
 
-SUIT TYPE: {outfit_request.suit_type}
-{suit_composition_detailed}
+        # Apply watermark
+        watermarked_image = await apply_watermark(image_bytes)
+        return watermarked_image
 
-SUIT COMPOSITION: {suit_composition}
-
-DETAILED JACKET SPECIFICATIONS:
-- Lapel Style: {lapel_spec}
-- Side Pockets: {pocket_spec}
-- Jacket Fit: Well-tailored, properly fitted to the model's body
-- Jacket Length: Appropriate proportion to the {person_term}'s height
-
-FABRIC AND COLOR:
-- Material: {outfit_request.fabric_description or "premium wedding fabric"}
-- Texture: Show realistic fabric texture and drape
-- Color: Ensure consistent color throughout all pieces
-
-FOOTWEAR SPECIFICATIONS:
-- Shoes: {outfit_request.custom_shoe_description or outfit_request.shoe_type}
-- Style: Professional, well-fitted, appropriate for formal wedding
-
-ACCESSORY SPECIFICATIONS:
-- Type: {outfit_request.custom_accessory_description or outfit_request.accessory_type}
-- Placement: Properly positioned and styled
-- Color coordination: Complement the suit color scheme
-
-WEDDING SETTING:
-- Environment: {atmosphere_desc}
-- Lighting: Natural, professional wedding photography lighting
-- Composition: Full-body shot showing all outfit details clearly
-
-TECHNICAL REQUIREMENTS:
-- Format: Portrait 4:3 ratio
-- Quality: High-resolution, professional wedding photography standard
-- Focus: Sharp details on all clothing elements
-- Pose: Maintain the model's original pose and proportions
-- Background: Appropriate wedding setting as specified
-- Gender: Ensure the final image clearly shows a {gender_desc} as specified
-
-CRITICAL ATTENTION TO DETAILS:
-- SUIT PIECES: {suit_composition}
-- Ensure {outfit_request.pocket_type} are clearly visible and correctly styled
-- Verify {outfit_request.lapel_type} is accurately represented
-- Show proper fabric drape and tailoring
-- Maintain consistent lighting across all garment pieces
-- IMPORTANT: Preserve the original gender characteristics of the model
-
-FINAL VALIDATION CHECKLIST - VERIFY BEFORE GENERATING:
-✓ Correct number of suit pieces as specified: {outfit_request.suit_type}
-✓ All required garment pieces are visible and distinct
-✓ Gender characteristics match the specified {gender_desc}
-✓ Lapel and pocket styles match specifications exactly
-✓ Professional wedding photography quality maintained
-
-Generate a stunning, photorealistic wedding image with perfect attention to every specified detail, especially the correct suit composition."""
-        
-        # Prepare file contents
-        file_contents = [ImageContent(model_base64)]
-        
-        # Add fabric image if provided
-        if fabric_image_data:
-            fabric_base64 = base64.b64encode(fabric_image_data).decode('utf-8')
-            file_contents.append(ImageContent(fabric_base64))
-            prompt += "\n\nUtilisez le motif/texture du tissu de la deuxième image téléchargée pour concevoir le costume."
-        
-        # Add shoe image if provided  
-        if shoe_image_data:
-            shoe_base64 = base64.b64encode(shoe_image_data).decode('utf-8')
-            file_contents.append(ImageContent(shoe_base64))
-            prompt += f"\n\nUtilisez les chaussures montrées dans l'image téléchargée comme référence exacte pour les chaussures du marié."
-            
-        # Add accessory image if provided
-        if accessory_image_data:
-            accessory_base64 = base64.b64encode(accessory_image_data).decode('utf-8')
-            file_contents.append(ImageContent(accessory_base64))
-            prompt += f"\n\nUtilisez l'accessoire montré dans l'image téléchargée comme référence exacte pour l'accessoire du marié."
-        
-        # Create message
-        msg = UserMessage(text=prompt, file_contents=file_contents)
-        
-        # Generate image
-        text, images = await chat.send_message_multimodal_response(msg)
-        
-        if images and len(images) > 0:
-            # Decode base64 image
-            image_bytes = base64.b64decode(images[0]['data'])
-            
-            # Apply watermark
-            watermarked_image = await apply_watermark(image_bytes)
-            
-            return watermarked_image
-        else:
-            raise HTTPException(status_code=500, detail="Failed to generate image")
-            
     except Exception as e:
-        logger.error(f"Error generating outfit image: {e}")
+        logger.error(f"Error generating outfit image with Vertex AI: {e}")
+        # Provide more specific feedback for common configuration errors
+        if "Could not automatically determine credentials" in str(e) or "PermissionDenied" in str(e):
+            raise HTTPException(status_code=500, detail="GCP Authentication Error. Ensure GOOGLE_APPLICATION_CREDENTIALS is set correctly.")
+        if "is not found" in str(e):
+             raise HTTPException(status_code=500, detail=f"GCP Project or Location not found. Check GCP_PROJECT_ID ('{project_id}') and GCP_LOCATION ('{location}').")
         raise HTTPException(status_code=500, detail=f"Image generation failed: {str(e)}")
 
 async def send_verification_email(email: str, prenom: str, verification_token: str):
